@@ -325,7 +325,7 @@ function MonthlyTab({monthKey,MS}){
   const activeCosts=pl.costGroups.filter(g=>g.actual>0);
   const opProfit=pl.opLoss.plan>0;
   const selYear=monthKey.slice(0,4);
-  const mRevChart=Array.from({length:mi+1},(_,i)=>{let act=null;for(const mk of Object.keys(MS)){if(mk.startsWith(selYear)&&MS[mk].monthIndex===i)act=MS[mk].revenue.actual;}return{m:`${i+1}월`,목표:Targets.amt.combined[i]/100,실적:act!=null?act/100:null};});
+  const mRevChart=Array.from({length:12},(_,i)=>{let act=null;for(const mk of Object.keys(MS)){if(mk.startsWith(selYear)&&MS[mk].monthIndex===i)act=MS[mk].revenue.actual;}return{m:`${i+1}월`,목표:Targets.amt.combined[i]/100,실적:act!=null?act/100:null};});
   const amtAch=Targets.amt.combined[mi]>0?((rv.actual/Targets.amt.combined[mi])*100).toFixed(1):"—";
   const qtyAch=tQT>0?((tQA/tQT)*100).toFixed(1):"—";
   const regs=M.regions||[];
@@ -560,12 +560,14 @@ function QuarterlyTab({qKey,QS}){
 
     {/* ── C2. 해외법인별 실적 ── */}
     <Card><SH icon="🌍" title="C2. 해외법인별 실적" badge={<Badge color="purple">분기 확정</Badge>} desc="LMUS(미국)·LMG(독일)·LMJ(일본) 3개 해외법인의 손익 현황. 법인별 매출·매출총이익(GP)·판관비·영업손실을 모니터링하여 투자 대비 수익화 진행 상황을 점검합니다."/>
-      <DT headers={["법인","매출","목표","GP","판관비","영업손실","비중"]} rows={Q.entities.map((e,i)=>{
-        const targets=["—","—","—"];const qIdx=Q.plTrend.length-1;
-        if(qIdx>=0){const qi=qIdx;const ovsQ=[Targets.amt.overseas.slice(0,3),Targets.amt.overseas.slice(3,6),Targets.amt.overseas.slice(6,9),Targets.amt.overseas.slice(9,12)];
-          if(qi<4){const qTotal=(ovsQ[qi]||[]).reduce((s,v)=>s+v,0)/100;targets[0]=(qTotal*0.7).toFixed(1)+"억";targets[1]=(qTotal*0.12).toFixed(1)+"억";targets[2]=(qTotal*0.18).toFixed(1)+"억";}
-        }
-        return[e.name,e.rev,{v:targets[i]||"—",color:C.textDim},e.gp,e.sga,{v:e.opLoss,color:C.red},{v:e.share,color:i===0?C.red:C.amber,bold:true}];
+      <DT headers={["법인","매출","목표(분기)","GP","판관비","영업손실","비중"]} rows={Q.entities.map((e,i)=>{
+        const ovsQ=[Targets.amt.overseas.slice(0,3),Targets.amt.overseas.slice(3,6),Targets.amt.overseas.slice(6,9),Targets.amt.overseas.slice(9,12)];
+        const lastQ=Q.plTrend[Q.plTrend.length-1]?.q||"";
+        const qMatch=lastQ.match(/[Qq](\d)/);const qi=qMatch?parseInt(qMatch[1])-1:Q.plTrend.length-1;
+        const qTotal=qi>=0&&qi<4?(ovsQ[qi]||[]).reduce((s,v)=>s+v,0)/100:0;
+        const shares=[0.70,0.12,0.18];
+        const tgt=qTotal>0?(qTotal*shares[i]).toFixed(1)+"억":"—";
+        return[e.name,e.rev,{v:tgt,color:C.textDim},e.gp,e.sga,{v:e.opLoss,color:C.red},{v:e.share,color:i===0?C.red:C.amber,bold:true}];
       })}/>
       <Fn>※ 연결IS 기준 분기 누적. 목표: 해외 사업계획 분기 합산을 법인별 비중(LMUS 70%/LMG 12%/LMJ 18%)으로 추정 배분. 정확한 법인별 목표는 확보 시 반영 예정.</Fn>
     </Card>
