@@ -325,7 +325,7 @@ function MonthlyTab({monthKey,MS}){
   const activeCosts=pl.costGroups.filter(g=>g.actual>0);
   const opProfit=pl.opLoss.plan>0;
   const selYear=monthKey.slice(0,4);
-  const mRevChart=Array.from({length:12},(_,i)=>{let act=null;for(const mk of Object.keys(MS)){if(mk.startsWith(selYear)&&MS[mk].monthIndex===i)act=MS[mk].revenue.actual;}return{m:`${i+1}월`,목표:Targets.amt.combined[i]/100,실적:act!=null?act/100:null};});
+  const mRevChart=Array.from({length:12},(_,i)=>{let act=null;if(i<=mi){for(const mk of Object.keys(MS)){if(mk.startsWith(selYear)&&MS[mk].monthIndex===i)act=MS[mk].revenue.actual;}}return{m:`${i+1}월`,목표:Targets.amt.combined[i]/100,실적:act!=null?act/100:null};});
   const amtAch=Targets.amt.combined[mi]>0?((rv.actual/Targets.amt.combined[mi])*100).toFixed(1):"—";
   const qtyAch=tQT>0?((tQA/tQT)*100).toFixed(1):"—";
   const regs=M.regions||[];
