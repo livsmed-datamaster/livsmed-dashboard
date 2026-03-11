@@ -134,7 +134,7 @@ function csvToQuarterly(rows){
       cumOpLoss:pN(r.q1_op_loss)+pN(r.q2_op)+pN(r.q3_op)+pN(r.q4_op),
       entities:[{name:r.entity1_name||"LMUS",rev:r.entity1_rev||"",gp:r.entity1_gp||"",sga:r.entity1_sga||"",opLoss:r.entity1_oploss||"",share:r.entity1_share||""},{name:r.entity2_name||"LMG",rev:r.entity2_rev||"",gp:r.entity2_gp||"",sga:r.entity2_sga||"",opLoss:r.entity2_oploss||"",share:r.entity2_share||""},{name:r.entity3_name||"LMJ",rev:r.entity3_rev||"",gp:r.entity3_gp||"",sga:r.entity3_sga||"",opLoss:r.entity3_oploss||"",share:r.entity3_share||""}],
       bs:{totalAssets:pN(r.bs_total_assets),equity:pN(r.bs_equity),currentRatio:pN(r.bs_current_ratio),debtRatio:pN(r.bs_debt_ratio),currentAssets:0,currentLiabilities:0},
-      cashTrend:fallbackQuarterly["FY25-Q3"].cashTrend,
+      cashTrend:(()=>{const ct=[{q:r.ct1_label||"",cash:pN(r.ct1_cash),net:pN(r.ct1_net)},{q:r.ct2_label||"",cash:pN(r.ct2_cash),net:pN(r.ct2_net)},{q:r.ct3_label||"",cash:pN(r.ct3_cash),net:pN(r.ct3_net)},{q:r.ct4_label||"",cash:pN(r.ct4_cash),net:pN(r.ct4_net)},{q:r.ct5_label||"",cash:pN(r.ct5_cash),net:pN(r.ct5_net)}].filter(x=>x.q);return ct.length>0?ct:fallbackQuarterly["FY25-Q3"].cashTrend;})(),
       ipoFunds:fallbackQuarterly["FY25-Q3"].ipoFunds};
   }
   return store;
