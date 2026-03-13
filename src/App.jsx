@@ -365,7 +365,7 @@ function MonthlyTab({monthKey,MS}){
           <ProgressBar value={rv.domActual} max={Targets.amt.domestic[mi]} label="국내 달성률"/>
         </div>
         <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
-          <div style={{fontSize:10,color:C.textDim}}>해외 매출 (인마켓)</div>
+          <div style={{fontSize:10,color:C.textDim}}>해외 매출 (연결)</div>
           <div style={{fontSize:22,fontWeight:700}}>{fmtBn(rv.ovsActual)}</div>
           <ProgressBar value={rv.ovsActual} max={Targets.amt.overseas[mi]} label="해외 달성률"/>
         </div>
