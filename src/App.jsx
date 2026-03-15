@@ -187,7 +187,7 @@ function WeeklyTab({weekKey,WS}){
   // Net Cash trend for combo chart
   const cashTrendData=wKeys.slice(Math.max(0,wIdx-5),wIdx+1).map(k=>{const t=WS[k]?.treasury;return{wk:k.replace(/^\d{4}[\.\-]/,""),flow:t?.weeklyFlow||0,netCash:t?.netCash||0};});
   // Monthly cumulative flow (same month's weeklyFlow sum)
-  const monthCumFlow=wKeys.filter(k=>WS[k]?.monthIndex===mi).reduce((sum,k)=>sum+(WS[k]?.treasury?.weeklyFlow||0),0);
+  const monthCumFlow=wKeys.filter(k=>WS[k]?.monthIndex===mi && k<=weekKey).reduce((sum,k)=>sum+(WS[k]?.treasury?.weeklyFlow||0),0);
   // Monthly avg burn rate (Net Cash / Runway)
   const monthlyBurnRate=(tr&&tr.runway>0)?Math.round(tr.netCash/tr.runway):null;
   // Shipment achievement bar data
