@@ -647,13 +647,13 @@ function Dashboard(){
   const [syncStatus,setSyncStatus]=useState({state:"idle",msg:"Google Sheets 미연결 (Fallback 데이터)",time:null});
   const [loading,setLoading]=useState(false);
 
-  const wk=Object.keys(WS).sort(),mk=Object.keys(MS).sort(),qk=Object.keys(QS).sort();
+  const wk=Object.keys(WS).sort(),mk=Object.keys(MS).sort().filter(k=>k>="2025-12"),qk=Object.keys(QS).sort();
   const [weekKey,setWeekKey]=useState(wk[wk.length-1]);
   const [monthKey,setMonthKey]=useState(mk[mk.length-1]);
   const [quarterKey,setQuarterKey]=useState(qk[qk.length-1]);
 
   useEffect(()=>{const ks=Object.keys(WS).sort();if(ks.length&&!ks.includes(weekKey))setWeekKey(ks[ks.length-1]);},[WS]);
-  useEffect(()=>{const ks=Object.keys(MS).sort();if(ks.length&&!ks.includes(monthKey))setMonthKey(ks[ks.length-1]);},[MS]);
+  useEffect(()=>{const ks=Object.keys(MS).sort().filter(k=>k>="2025-12");if(ks.length&&!ks.includes(monthKey))setMonthKey(ks[ks.length-1]);},[MS]);
 
   // Auto-sync on load
   useEffect(()=>{if(sheetId)doSync();},[]);
@@ -728,7 +728,7 @@ function Dashboard(){
 
       {/* Period Nav + Tab Content */}
       {tab==="weekly"&&<><PeriodNav keys={Object.keys(WS).sort()} current={weekKey} onChange={setWeekKey} colorActive={C.weekly} labels={Object.fromEntries(Object.entries(WS).map(([k,v])=>[k,v.label?v.label.replace(/\s*\(.*\)/,""):k]))}/><WeeklyTab weekKey={weekKey} WS={WS}/></>}
-      {tab==="monthly"&&<><PeriodNav keys={Object.keys(MS).sort()} current={monthKey} onChange={setMonthKey} colorActive={C.monthly}/><MonthlyTab monthKey={monthKey} MS={MS}/></>}
+      {tab==="monthly"&&<><PeriodNav keys={Object.keys(MS).sort().filter(k=>k>="2025-12")} current={monthKey} onChange={setMonthKey} colorActive={C.monthly}/><MonthlyTab monthKey={monthKey} MS={MS}/></>}
       {tab==="quarterly"&&<><PeriodNav keys={Object.keys(QS).sort()} current={quarterKey} onChange={setQuarterKey} colorActive={C.quarterly}/><QuarterlyTab qKey={quarterKey} QS={QS}/></>}
 
       <div style={{marginTop:20,padding:"12px 0",borderTop:`1px solid ${C.border}`,display:"flex",flexDirection:"column",gap:6,fontSize:10,color:C.textDim}}>
