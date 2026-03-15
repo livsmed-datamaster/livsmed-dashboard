@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, L
 import Papa from "papaparse";
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v4.5 — Google Sheets Integration           ║
+// ║  LIVSMED Executive Dashboard v4.6 — Google Sheets Integration           ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 // ── Password (변경 시 이 값만 수정) ──
@@ -19,7 +19,7 @@ const Targets={
 const getTT=(r,mi)=>(Targets.qty[r].ArtiSential[mi]||0)+(Targets.qty[r].ArtiSeal[mi]||0)+(Targets.qty[r].ArtiStapler[mi]||0);
 
 // ── Fallback Data (Sheets 연결 전 또는 fetch 실패 시) ──
-const fallbackWeekly={"2026.01 W4":{label:"2026.01 W4 (1/20~1/24)",updated:"2026.01.27 월",shipments:{domestic:{weekly:{ArtiSential:1520,ArtiSeal:290,ArtiStapler:0},mtd:{ArtiSential:5730,ArtiSeal:1070,ArtiStapler:0}},overseas:{weekly:{ArtiSential:220,ArtiSeal:90,ArtiStapler:0},mtd:{ArtiSential:740,ArtiSeal:300,ArtiStapler:0}}},orders:{domestic:{weekly:{ArtiSential:1450,ArtiSeal:310,ArtiStapler:0},mtd:{ArtiSential:4300,ArtiSeal:830,ArtiStapler:0},backlog:3800},overseas:{weekly:{ArtiSential:280,ArtiSeal:105,ArtiStapler:0},mtd:{ArtiSential:930,ArtiSeal:365,ArtiStapler:0},backlog:2500}},inmarket:{domestic:{mtd:null,note:"직판병원 실사용량 미확정"},overseas:{weekly:{ArtiSential:190,ArtiSeal:78,ArtiStapler:0},mtd:{ArtiSential:670,ArtiSeal:273,ArtiStapler:0}}},backorder:{domestic:945,overseas:0,avgDelay:12.7,totalQty:945,reasons:["대리점 보관요청","재고부족"],prev:{domestic:900,overseas:0,avgDelay:11.5}},treasury:{cashBalance:13800,deposits:110000,elb:0,foreignCurrency:625,borrowings:3000,netCash:121425,weeklyFlow:-315,prevFlow:-1970,runway:24.2,trend:[{wk:"01 W1",flow:0},{wk:"01 W2",flow:-1472},{wk:"01 W3",flow:-998},{wk:"01 W4",flow:-315}]},monthIndex:0},"2026.03 W1":{label:"2026.03 W1 (3/2~3/6)",updated:"2026.03.09 월",shipments:{domestic:{weekly:null,mtd:null},overseas:{weekly:null,mtd:null}},orders:{domestic:{weekly:null,mtd:null,backlog:null},overseas:{weekly:null,mtd:null,backlog:null}},inmarket:{domestic:{mtd:null,note:"미확정"},overseas:{weekly:null,mtd:null}},backorder:{domestic:945,overseas:0,avgDelay:12.7,totalQty:945,reasons:["대리점 보관요청","재고부족"],prev:{domestic:945,overseas:0,avgDelay:12.7}},treasury:{cashBalance:14428,deposits:100000,elb:5000,foreignCurrency:684,borrowings:3000,netCash:117112,weeklyFlow:566,prevFlow:-3745,runway:23.3,trend:[{wk:"02 W2",flow:-315},{wk:"02 W3",flow:-1449},{wk:"02 W4",flow:-3745},{wk:"03 W1",flow:566}]},monthIndex:2}};
+const fallbackWeekly={"2026.01 W4":{label:"2026.01 W4 (1/20~1/24)",updated:"2026.01.27 월",shipments:{domestic:{weekly:{ArtiSential:1520,ArtiSeal:290,ArtiStapler:0},mtd:{ArtiSential:5730,ArtiSeal:1070,ArtiStapler:0}},overseas:{weekly:{ArtiSential:220,ArtiSeal:90,ArtiStapler:0},mtd:{ArtiSential:740,ArtiSeal:300,ArtiStapler:0}}},orders:{domestic:{weekly:{ArtiSential:1450,ArtiSeal:310,ArtiStapler:0},mtd:{ArtiSential:4300,ArtiSeal:830,ArtiStapler:0},backlog:3800},overseas:{weekly:{ArtiSential:280,ArtiSeal:105,ArtiStapler:0},mtd:{ArtiSential:930,ArtiSeal:365,ArtiStapler:0},backlog:2500}},backorder:{domestic:945,overseas:0,avgDelay:12.7,totalQty:945,reasons:["대리점 보관요청","재고부족"],prev:{domestic:900,overseas:0,avgDelay:11.5}},treasury:{cashBalance:13800,deposits:110000,elb:0,foreignCurrency:625,borrowings:3000,netCash:121425,weeklyFlow:-315,prevFlow:-1970,runway:24.2,trend:[{wk:"01 W1",flow:0},{wk:"01 W2",flow:-1472},{wk:"01 W3",flow:-998},{wk:"01 W4",flow:-315}]},monthIndex:0},"2026.03 W1":{label:"2026.03 W1 (3/2~3/6)",updated:"2026.03.09 월",shipments:{domestic:{weekly:null,mtd:null},overseas:{weekly:null,mtd:null}},orders:{domestic:{weekly:null,mtd:null,backlog:null},overseas:{weekly:null,mtd:null,backlog:null}},backorder:{domestic:945,overseas:0,avgDelay:12.7,totalQty:945,reasons:["대리점 보관요청","재고부족"],prev:{domestic:945,overseas:0,avgDelay:12.7}},treasury:{cashBalance:14428,deposits:100000,elb:5000,foreignCurrency:684,borrowings:3000,netCash:117112,weeklyFlow:566,prevFlow:-3745,runway:23.3,trend:[{wk:"02 W2",flow:-315},{wk:"02 W3",flow:-1449},{wk:"02 W4",flow:-3745},{wk:"03 W1",flow:566}]},monthIndex:2}};
 const fallbackMonthly={"2025-11":{label:"FY2025 11월 가결산 (REV01)",updated:"2025.12.16",monthIndex:10,revenue:{actual:4583,plan:7013,prev:3830,domActual:4346,ovsActual:237},pl:{cogs:1930,grossProfit:2653,grossMarginPct:57.9,opLoss:{actual:-1478,plan:277},ebitda:{actual:-1398,plan:310},netLoss:{actual:-1556,plan:282},costGroups:[{name:"인건비",actual:1560,plan:1543},{name:"R&D",actual:858,plan:970},{name:"영업활동",actual:765,plan:974},{name:"해외시장개척",actual:0,plan:31},{name:"기타",actual:948,plan:501}]},qtyActual:{domestic:{ArtiSential:5820,ArtiSeal:1050,ArtiStapler:0},overseas:{ArtiSential:620,ArtiSeal:280,ArtiStapler:0}},standalone:5569,consolidated:4583,regions:[{name:"🇰🇷 국내",data:[{m:"9월",v:4173},{m:"10월",v:3512},{m:"11월",v:4346}],target:5333,color:"#3b82f6"},{name:"🇺🇸 미국",data:[{m:"9월",v:246},{m:"10월",v:181},{m:"11월",v:46}],target:1434,color:"#ef4444"},{name:"🇩🇪 독일",data:[{m:"9월",v:56},{m:"10월",v:82},{m:"11월",v:95}],target:111,color:"#10b981"},{name:"🇯🇵 일본",data:[{m:"9월",v:36},{m:"10월",v:20},{m:"11월",v:32}],target:46,color:"#f59e0b"},{name:"🌍 기타",data:[{m:"9월",v:89},{m:"10월",v:36},{m:"11월",v:65}],target:89,color:"#a78bfa"}],ar:{balance:4250,collectionRate:88.5,longOverdue:99,detail:"국내 연체 47백만, 해외 연체 52백만"},inventory:{domestic:1297,overseas:3838,domesticDetail:{fiveMm:685,eightMm:561,trocar:7,artiSeal:44},overseasDetail:{LMJ:1454,LMG:2384,LMUS:"미수신"},lmusNote:"LMUS 재고: 추후 수령 예정"},arTrend:[{m:"9월",rate:91.2,overdue:85},{m:"10월",rate:89.3,overdue:92},{m:"11월",rate:88.5,overdue:99}],invTrend:[{m:"9월",dom:1350,ovs:3920},{m:"10월",dom:1320,ovs:3870},{m:"11월",dom:1297,ovs:3838}],forecast:[{m:"1월",fcQty:10275,ti:1},{m:"2월",fcQty:10648,ti:2},{m:"3월",fcQty:12785,ti:3}]}};
 const fallbackQuarterly={"FY25-Q3":{label:"FY2025 3Q 확정 (2025.07~09)",updated:"2025.11.14",plTrend:[{q:"24.4Q",rev:95.8,opLoss:-62.6},{q:"25.1Q",rev:97.3,opLoss:-66.6},{q:"25.2Q",rev:114.1,opLoss:-54.3},{q:"25.3Q",rev:134.4,opLoss:-45.5}],cumRevenue:441.6,cumOpLoss:-229.0,entities:[{name:"LMUS (미국)",rev:"26.2억",gp:"7.3억",sga:"85.8억",opLoss:"△78.5억",share:"70%"},{name:"LMG (독일)",rev:"6.4억",gp:"3.2억",sga:"24.2억",opLoss:"△21.1억",share:"19%"},{name:"LMJ (일본)",rev:"3.0억",gp:"1.0억",sga:"14.0억",opLoss:"△13.1억",share:"12%"}],bs:{totalAssets:743.6,equity:535.9,currentAssets:514.1,currentLiabilities:146.3,totalDebt:207.8,currentRatio:351.5,debtRatio:38.8},cashTrend:[{q:"FY25 1Q",cash:180,net:120},{q:"2Q",cash:165,net:108},{q:"3Q",cash:148,net:95},{q:"4Q(IPO)",cash:1297,net:1267},{q:"FY26 1Q",cash:1201,net:1171}],ipoFunds:[{label:"연구개발비",plan:120,used:28},{label:"해외시장 개척",plan:80,used:15},{label:"운영자금",plan:60,used:22},{label:"시설투자",plan:40,used:5}]}};
 
@@ -49,7 +49,6 @@ function csvToWeeklyShipments(rows){
     store[k]={label:r.week_label||k,updated:r.updated||"",monthIndex:mi,
       shipments:{domestic:{weekly:{ArtiSential:pN(r.dom_ship_w_AS),ArtiSeal:pN(r.dom_ship_w_Seal),ArtiStapler:pN(r.dom_ship_w_Stapler)},mtd:{ArtiSential:pN(r.dom_ship_m_AS),ArtiSeal:pN(r.dom_ship_m_Seal),ArtiStapler:pN(r.dom_ship_m_Stapler)}},overseas:{weekly:{ArtiSential:pN(r.ovs_ship_w_AS),ArtiSeal:pN(r.ovs_ship_w_Seal),ArtiStapler:pN(r.ovs_ship_w_Stapler)},mtd:{ArtiSential:pN(r.ovs_ship_m_AS),ArtiSeal:pN(r.ovs_ship_m_Seal),ArtiStapler:pN(r.ovs_ship_m_Stapler)}}},
       orders:{domestic:{weekly:{ArtiSential:pN(r.dom_ord_w_AS),ArtiSeal:pN(r.dom_ord_w_Seal),ArtiStapler:pN(r.dom_ord_w_Stapler)},mtd:{ArtiSential:pN(r.dom_ord_m_AS),ArtiSeal:pN(r.dom_ord_m_Seal),ArtiStapler:pN(r.dom_ord_m_Stapler)},backlog:pN(r.dom_backlog)},overseas:{weekly:{ArtiSential:pN(r.ovs_ord_w_AS),ArtiSeal:pN(r.ovs_ord_w_Seal),ArtiStapler:pN(r.ovs_ord_w_Stapler)},mtd:{ArtiSential:pN(r.ovs_ord_m_AS),ArtiSeal:pN(r.ovs_ord_m_Seal),ArtiStapler:pN(r.ovs_ord_m_Stapler)},backlog:pN(r.ovs_backlog)}},
-      inmarket:{domestic:{mtd:null,note:"직판병원 실사용량 미확정"},overseas:{weekly:null,mtd:null}},
       backorder:prevBO,treasury:prevTr};
   }
   return store;
@@ -64,7 +63,7 @@ function mergeTreasury(store,rows){
     const wkShort=k.replace(/^\d{4}[\.\-]/,"");
     flowHist.push({wk:wkShort,flow:wf});
     const trend=flowHist.slice(-4);
-    if(!store[k])store[k]={label:r.week_label||k,updated:r.updated||"",monthIndex:0,shipments:{domestic:{weekly:null,mtd:null},overseas:{weekly:null,mtd:null}},orders:{domestic:{weekly:null,mtd:null,backlog:null},overseas:{weekly:null,mtd:null,backlog:null}},inmarket:{domestic:{mtd:null,note:"미확정"},overseas:{weekly:null,mtd:null}},backorder:{domestic:0,overseas:0,avgDelay:0,totalQty:0,reasons:[],prev:{domestic:0,overseas:0,avgDelay:0}}};
+    if(!store[k])store[k]={label:r.week_label||k,updated:r.updated||"",monthIndex:0,shipments:{domestic:{weekly:null,mtd:null},overseas:{weekly:null,mtd:null}},orders:{domestic:{weekly:null,mtd:null,backlog:null},overseas:{weekly:null,mtd:null,backlog:null}},backorder:{domestic:0,overseas:0,avgDelay:0,totalQty:0,reasons:[],prev:{domestic:0,overseas:0,avgDelay:0}}};
     store[k].treasury={cashBalance:pN(r.cash_balance),deposits:pN(r.deposits),elb:pN(r.elb),foreignCurrency:pN(r.foreign_currency),borrowings:pN(r.borrowings),netCash:pN(r.net_cash),weeklyFlow:wf,prevFlow:flowHist.length>=2?flowHist[flowHist.length-2].flow:0,runway:pN(r.runway),monthlyNetFlow:pNNull(r.monthly_net_flow),trend:[...trend]};
     if(r.updated)store[k].updated=r.updated;
   }
@@ -125,6 +124,17 @@ function csvToMonthly(plRows,subRows){
   return store;
 }
 
+function mergeInmarket(store,rows){
+  for(const r of(rows||[])){
+    const k=(r.month_key||"").trim();if(!k||!store[k])continue;
+    store[k].inmarket={
+      domestic:{direct:{target:pN(r.dom_direct_target),actual:pN(r.dom_direct_actual)},dealer:{target:pN(r.dom_dealer_target),actual:pN(r.dom_dealer_actual)}},
+      overseas:{us:{target:pN(r.ovs_us_target),actual:pN(r.ovs_us_actual)},de:{target:pN(r.ovs_de_target),actual:pN(r.ovs_de_actual)},jp:{target:pN(r.ovs_jp_target),actual:pN(r.ovs_jp_actual)},other:{target:pN(r.ovs_other_target),actual:pN(r.ovs_other_actual)}}
+    };
+  }
+  return store;
+}
+
 function csvToQuarterly(rows){
   const store={};
   for(const r of rows){
@@ -175,7 +185,7 @@ const shipRow=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m
 function WeeklyTab({weekKey,WS}){
   const W=WS[weekKey];if(!W)return<NoData msg="해당 주차 데이터가 없습니다."/>;
   const mi=W.monthIndex,dT=getTT("domestic",mi),oT=getTT("overseas",mi);
-  const s=W.shipments,o=W.orders,im=W.inmarket,bo=W.backorder,tr=W.treasury;
+  const s=W.shipments,o=W.orders,bo=W.backorder,tr=W.treasury;
   const hasShip=s?.domestic?.weekly!=null;const hasOrd=o?.domestic?.weekly!=null;
   const dSM=hasShip?sumP(s.domestic.mtd):0,oSM=hasShip?sumP(s.overseas.mtd):0;
   const wShipTotal=hasShip?(sumP(s.domestic.weekly)+sumP(s.overseas.weekly)):null;
@@ -202,7 +212,7 @@ function WeeklyTab({weekKey,WS}){
     <TabIntro color={C.green} icon="📡" title="Weekly — 주간 운영 현황">
       주간 단위로 업데이트되는 <strong style={{color:C.text}}>운영 지표</strong>입니다. 자금 현황(월요일)과 출하·수주·백오더(금요일)가 매주 갱신됩니다.<br/>
       핵심 질문: <strong style={{color:C.text}}>"이번 주 회사의 현금 흐름과 영업 활동은 정상 궤도인가?"</strong><br/>
-      자금 현황은 재무본부의 주별 집계 데이터이며, 출하·수주는 ERP/SCM 시스템 기반 실시간 집계입니다. 인마켓은 데이터 확보가 가장 어려워 정확도가 상대적으로 낮습니다.
+      자금 현황은 재무본부의 주별 집계 데이터이며, 출하·수주는 ERP/SCM 시스템 기반 실시간 집계입니다.
     </TabIntro>
 
     {/* ── Summary Cards ── */}
@@ -234,19 +244,35 @@ function WeeklyTab({weekKey,WS}){
           <Metric label="월평균 Burn Rate" value={monthlyBurnRate!=null?`△${fmt(Math.abs(monthlyBurnRate))}`:"—"} unit="백만/월" color={C.amber} small/>
           <Metric label="Runway" value={tr.runway} unit="개월" small/>
         </div>
-        {cashTrendData.length>0&&<div style={{height:120}}><ResponsiveContainer>
-          <ComposedChart data={cashTrendData} margin={{top:20,right:10,bottom:0,left:10}}>
+        <div style={{display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:8,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
+          <div style={{fontSize:32,fontWeight:700,color:tr.netCash>100000?C.green:C.amber}}>{(tr.netCash/1000).toFixed(1)}<span style={{fontSize:14,color:C.textMuted}}>십억</span></div>
+          <div style={{fontSize:10,color:C.textDim}}>Net Cash</div>
+        </div>
+      </div>
+      {cashTrendData.length>1&&<div style={{marginTop:14}}>
+        <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 Net Cash 추이</div>
+        <div style={{height:100}}><ResponsiveContainer>
+          <LineChart data={cashTrendData} margin={{top:5,right:10,bottom:0,left:0}}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
-            <XAxis dataKey="wk" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-            <YAxis yAxisId="left" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} hide/>
-            <YAxis yAxisId="right" orientation="right" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} hide/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,name)=>[`${v?.toLocaleString()}백만`,name]}/>
-            <Legend wrapperStyle={{fontSize:10,color:"#cbd5e1"}}/>
-            <Bar yAxisId="left" dataKey="flow" name="주간 순흐름" radius={[3,3,0,0]}>{cashTrendData.map((d,i)=>(<Cell key={i} fill={d.flow>=0?"#34d399":"#f87171"} opacity={0.8}/>))}</Bar>
-            <Line yAxisId="right" type="monotone" dataKey="netCash" name="Net Cash" stroke="#60a5fa" strokeWidth={2} dot={{r:3,fill:"#60a5fa"}}/>
-          </ComposedChart>
-        </ResponsiveContainer></div>}
-      </div></>}
+            <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
+            <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} domain={["dataMin-2000","dataMax+2000"]}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만`,"Net Cash"]}/>
+            <Line type="monotone" dataKey="netCash" stroke="#60a5fa" strokeWidth={2} dot={{r:3,fill:"#60a5fa"}}/>
+          </LineChart>
+        </ResponsiveContainer></div>
+      </div>}
+      {cashTrendData.length>1&&<div style={{marginTop:10}}>
+        <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>💧 주간 순흐름</div>
+        <div style={{height:90}}><ResponsiveContainer>
+          <BarChart data={cashTrendData} margin={{top:5,right:10,bottom:0,left:0}}>
+            <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
+            <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
+            <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만`,"순흐름"]}/>
+            <Bar dataKey="flow" radius={[3,3,0,0]}>{cashTrendData.map((d,i)=>(<Cell key={i} fill={d.flow>=0?"#34d399":"#f87171"} opacity={0.8}/>))}</Bar>
+          </BarChart>
+        </ResponsiveContainer></div>
+      </div>}</>}
       <Fn>※ 재무본부 주간 자금보고 기준. Net Cash = 보통예금+정기예금+ELB+외화−차입금. 당월 누적 흐름 = 해당 월 주간흐름 합산. 월평균 Burn Rate = Net Cash ÷ Runway (매월 평균 순유출 규모). Runway = Net Cash ÷ 최근 3개월 월평균 순유출. 주간흐름(양=현금 유입 우위, 음=유출 우위). ELB = 주가연계파생결합사채(Equity-Linked Bond), 외화는 USD·JPY 환산, 차입금은 IBK기업은행 운영자금대출.</Fn>
     </Card>
 
@@ -267,7 +293,7 @@ function WeeklyTab({weekKey,WS}){
           <BarChart data={shipAchData} layout="vertical" margin={{left:40,right:20,top:5,bottom:5}}>
             <XAxis type="number" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false}/>
             <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n==="actual"?"월누적":"월목표"]}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/>
             <Bar dataKey="target" fill="#475569" radius={[0,3,3,0]} opacity={0.4} name="월목표"/>
             <Bar dataKey="actual" fill={C.accent} radius={[0,3,3,0]} name="월누적"/>
           </BarChart>
@@ -275,18 +301,18 @@ function WeeklyTab({weekKey,WS}){
         <div style={{marginTop:6}}><ProgressBar value={dSM+oSM} max={dT+oT} label={`통합 달성률 (${fmt(dSM+oSM)} / ${fmt(dT+oT)})`} height={8}/></div>
         {shipTrend8.length>=2&&<div style={{marginTop:12}}>
           <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {shipTrend8.length}주 출하 트렌드</div>
-          <div style={{height:140}}><ResponsiveContainer>
-            <LineChart data={shipTrend8} margin={{top:5,right:10,bottom:0,left:0}}>
+          <div style={{height:160}}><ResponsiveContainer>
+            <BarChart data={shipTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.Seal_dom+d.Seal_ovs}))} margin={{top:5,right:10,bottom:0,left:0}}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
               <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:10,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}대`]}/>
+              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/>
               <Legend wrapperStyle={{fontSize:9}}/>
-              <Line type="monotone" dataKey="AS_dom" name="AS 국내" stroke={C.accent} strokeWidth={2} dot={{r:2}}/>
-              <Line type="monotone" dataKey="AS_ovs" name="AS 해외" stroke={C.green} strokeWidth={2} dot={{r:2}}/>
-              <Line type="monotone" dataKey="Seal_dom" name="Seal 국내" stroke={C.amber} strokeWidth={1.5} dot={{r:2}} strokeDasharray="4 2"/>
-              <Line type="monotone" dataKey="Seal_ovs" name="Seal 해외" stroke={C.purple} strokeWidth={1.5} dot={{r:2}} strokeDasharray="4 2"/>
-            </LineChart>
+              <Bar dataKey="AS_dom" name="AS 국내" stackId="a" fill={C.accent}/>
+              <Bar dataKey="AS_ovs" name="AS 해외" stackId="a" fill={C.green}/>
+              <Bar dataKey="Seal_dom" name="Seal 국내" stackId="a" fill={C.amber}/>
+              <Bar dataKey="Seal_ovs" name="Seal 해외" stackId="a" fill={C.purple} radius={[3,3,0,0]}/>
+            </BarChart>
           </ResponsiveContainer></div>
         </div>}
         <Fn>※ 출하 = 물리적 제품 이동 (ERP 출고 처리). 매출 인식과는 별도 기준. 국내 직판 병원은 가납창고(병원 내 위탁 보관) 이동 시점에 출하로 집계되나, 매출 인식은 실사용(개봉) 시점. 해외는 선적 시점 기준.</Fn>
@@ -311,25 +337,25 @@ function WeeklyTab({weekKey,WS}){
           <BarChart data={ordAchData} layout="vertical" margin={{left:40,right:20,top:5,bottom:5}}>
             <XAxis type="number" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false}/>
             <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n==="actual"?"월누적":"월목표"]}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/>
             <Bar dataKey="target" fill="#475569" radius={[0,3,3,0]} opacity={0.4} name="월목표"/>
             <Bar dataKey="actual" fill={C.green} radius={[0,3,3,0]} name="월누적"/>
           </BarChart>
         </ResponsiveContainer></div>}
         {ordTrend8.length>=2&&<div style={{marginTop:12}}>
           <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {ordTrend8.length}주 수주 트렌드</div>
-          <div style={{height:140}}><ResponsiveContainer>
-            <LineChart data={ordTrend8} margin={{top:5,right:10,bottom:0,left:0}}>
+          <div style={{height:160}}><ResponsiveContainer>
+            <BarChart data={ordTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.Seal_dom+d.Seal_ovs}))} margin={{top:5,right:10,bottom:0,left:0}}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
               <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:10,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}대`]}/>
+              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/>
               <Legend wrapperStyle={{fontSize:9}}/>
-              <Line type="monotone" dataKey="AS_dom" name="AS 국내" stroke={C.accent} strokeWidth={2} dot={{r:2}}/>
-              <Line type="monotone" dataKey="AS_ovs" name="AS 해외" stroke={C.green} strokeWidth={2} dot={{r:2}}/>
-              <Line type="monotone" dataKey="Seal_dom" name="Seal 국내" stroke={C.amber} strokeWidth={1.5} dot={{r:2}} strokeDasharray="4 2"/>
-              <Line type="monotone" dataKey="Seal_ovs" name="Seal 해외" stroke={C.purple} strokeWidth={1.5} dot={{r:2}} strokeDasharray="4 2"/>
-            </LineChart>
+              <Bar dataKey="AS_dom" name="AS 국내" stackId="a" fill={C.accent}/>
+              <Bar dataKey="AS_ovs" name="AS 해외" stackId="a" fill={C.green}/>
+              <Bar dataKey="Seal_dom" name="Seal 국내" stackId="a" fill={C.amber}/>
+              <Bar dataKey="Seal_ovs" name="Seal 해외" stackId="a" fill={C.purple} radius={[3,3,0,0]}/>
+            </BarChart>
           </ResponsiveContainer></div>
         </div>}
       </>):(<NoData msg="수주 데이터 미수신"/>)}
@@ -337,7 +363,7 @@ function WeeklyTab({weekKey,WS}){
     </Card>
 
     {/* ── A4. 백오더 ── */}
-    <Card><SH icon="🚨" title="A4. 백오더" badge={<Badge color="green">매주 금요일</Badge>} desc="납기일을 초과하여 출하가 지연되고 있는 주문 수량. 고객 불만족 및 매출 이연 리스크의 지표입니다. 증가 추세이면 생산·물류 병목 점검이 필요합니다."/>
+    <Card style={{marginBottom:0}}><SH icon="🚨" title="A4. 백오더" badge={<Badge color="green">매주 금요일</Badge>} desc="납기일을 초과하여 출하가 지연되고 있는 주문 수량. 고객 불만족 및 매출 이연 리스크의 지표입니다. 증가 추세이면 생산·물류 병목 점검이 필요합니다."/>
       {bo&&<div style={{display:"flex",gap:20,alignItems:"baseline",flexWrap:"wrap"}}>
         <Metric label="국내" value={bo.domestic} unit="대" trend={bo.domestic-(bo.prev?.domestic||0)} small/>
         <Metric label="해외" value={bo.overseas} unit="대" trend={bo.overseas-(bo.prev?.overseas||0)} small/>
@@ -346,15 +372,6 @@ function WeeklyTab({weekKey,WS}){
       </div>}
       {bo?.reasons?.length>0&&<div style={{fontSize:10,color:C.amber,marginTop:4}}>사유: {bo.reasons.join(", ")}</div>}
       <Fn>※ 수량(대) 기준. 1개 PO에 복수 수량이 포함될 수 있어 PO 건수와 다름. 주요 사유: 대리점 보관요청(배송 일정 조율), 재고부족(생산 지연). 평균 지연일수 증가 시 고객 이탈 리스크 상승.</Fn>
-    </Card>
-
-    {/* ── A5. 인마켓 ── */}
-    <Card style={{marginBottom:0}}><SH icon="🏥" title="A5. 인마켓" badge={<><Badge color="green">해외 매주</Badge>{" "}<Badge color="amber">국내 월간</Badge></>} desc="최종 유통 단계의 판매/사용 수량. 출하·수주가 '공급측' 지표라면, 인마켓은 '수요측'에 가까운 지표입니다. 국내는 월마감 후에만 확정되고, 해외는 현지 법인 보고에 의존합니다. (정확한 데이터 정의는 부서 간 확인 중)"/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:4}}>🇰🇷 국내</div><div style={{fontSize:11,color:C.amber}}>⏳ {im?.domestic?.note||"월마감 후 확정"}</div></div>
-        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:4}}>🌏 해외</div>{im?.overseas?.mtd?<DT compact headers={["품목","금주","월누적"]} rows={[["ArtiSential",fmt(im.overseas.weekly?.ArtiSential),fmt(im.overseas.mtd.ArtiSential)],["ArtiSeal",fmt(im.overseas.weekly?.ArtiSeal),fmt(im.overseas.mtd.ArtiSeal)]]}/>:<div style={{fontSize:11,color:C.amber}}>⏳ 미수신</div>}</div>
-      </div>
-      <Fn>※ 해외: LMUS/LMG/LMJ 현지 법인이 보고하는 판매 수량. 보고 기준이 법인마다 다를 수 있어 정확도 검증 중. 국내: 직판 병원 실사용량은 월마감 후 확정. 인마켓의 정확한 정의(실사용 vs 구매)는 영업관리팀 확인 필요.</Fn>
     </Card>
   </div>);
 }
@@ -386,7 +403,7 @@ function MonthlyTab({monthKey,MS}){
     <TabIntro color={C.accent} icon="📊" title="Monthly — 월간 경영 실적">
       매월 마감 후 재무본부가 산출하는 <strong style={{color:C.text}}>가결산 기준 경영 실적</strong>입니다. 익월 2주차에 확정되며, 매출은 마감 확정이나 비용은 추정 배부값입니다.<br/>
       핵심 질문: <strong style={{color:C.text}}>"이번 달 매출 목표를 달성했는가? 비용 구조는 건전한가? 현금 회수와 재고는 적정한가?"</strong><br/>
-      B1(매출)→B2(손익)→B3(비용)으로 실적을 확인하고, B4(매출채권)·B5(재고)로 운전자본 건전성을 점검합니다.
+      B1(매출)→B1-3(인마켓)→B2(손익)→B3(비용)으로 실적을 확인하고, B4(매출채권)·B5(재고)로 운전자본 건전성을 점검합니다.
     </TabIntro>
     <div style={{padding:"8px 12px",marginBottom:14,borderRadius:6,background:"rgba(59,130,246,0.08)",border:`1px solid ${C.accent}33`,fontSize:11,color:C.accent}}>ⓘ <strong>{M.label}</strong> · 갱신: {M.updated}</div>
 
@@ -469,6 +486,67 @@ function MonthlyTab({monthKey,MS}){
         {regData.filter(r=>r.target>0&&pctVal(r.val,r.target)<80).map(r=>`${r.name} ${pctStr(r.val,r.target)}`).join(" · ")} — 원인 분석 및 대응 필요
       </InfoBox>}
       <Fn>※ 가결산 상세 시트 지역별 매출. 비중(%) = 해당 지역 매출 ÷ 전체 연결 매출. 지역별 목표: 해외사업실 2026년 사업계획 기준 (AS+VS 합산, 백만원). 국내 목표: 사업계획 domestic 기준.</Fn>
+    </Card>
+
+    {/* ── B1-3. 인마켓 ── */}
+    <Card>
+      <SH icon="🏥" title="B1-3. 인마켓" badge={<Badge color="blue">월간</Badge>} desc="최종 유통 단계의 판매/사용 수량(개). 출하·매출이 '공급측' 지표라면, 인마켓은 '수요측'에 가까운 지표입니다. 국내는 직판(병원 실사용)과 대리점으로 구분되며, 해외는 법인 인마켓(미국·독일+EMEA·일본)과 기타국가 선적으로 구분됩니다."/>
+      {(()=>{
+        const im=M.inmarket;
+        if(!im)return<NoData msg="인마켓 데이터 미입력 (Monthly_Inmarket 시트 확인)"/>;
+        const d=im.domestic,ov=im.overseas;
+        const domTotal={target:(d.direct.target||0)+(d.dealer.target||0),actual:(d.direct.actual||0)+(d.dealer.actual||0)};
+        const ovsEntries=[{name:"🇺🇸 미국",...ov.us},{name:"🇩🇪 독일+EMEA",...ov.de},{name:"🇯🇵 일본",...ov.jp},{name:"🌍 기타(선적)",...ov.other}];
+        const ovsTotal={target:ovsEntries.reduce((s,e)=>s+(e.target||0),0),actual:ovsEntries.reduce((s,e)=>s+(e.actual||0),0)};
+        const grandTotal={target:domTotal.target+ovsTotal.target,actual:domTotal.actual+ovsTotal.actual};
+        const imChartData=[{name:"직판",목표:d.direct.target,실적:d.direct.actual},{name:"대리점",목표:d.dealer.target,실적:d.dealer.actual},...ovsEntries.map(e=>({name:e.name.replace(/[^\w가-힣+\s]/g,"").trim(),목표:e.target,실적:e.actual}))].filter(x=>x.목표>0||x.실적>0);
+        return(<>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:14}}>
+            <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
+              <div style={{fontSize:10,color:C.textDim}}>통합 인마켓</div>
+              <div style={{fontSize:22,fontWeight:700}}>{fmt(grandTotal.actual)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div>
+              <div style={{fontSize:11,color:C.textDim}}>목표 {fmt(grandTotal.target)}</div>
+              <div style={{fontSize:14,fontWeight:700,color:pctClr(grandTotal.actual,grandTotal.target),marginTop:4}}>달성률 {pctStr(grandTotal.actual,grandTotal.target)}</div>
+            </div>
+            <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
+              <div style={{fontSize:10,color:C.textDim}}>🇰🇷 국내</div>
+              <div style={{fontSize:18,fontWeight:700}}>{fmt(domTotal.actual)}</div>
+              <ProgressBar value={domTotal.actual} max={domTotal.target} label={`국내 ${pctStr(domTotal.actual,domTotal.target)}`}/>
+            </div>
+            <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
+              <div style={{fontSize:10,color:C.textDim}}>🌏 해외</div>
+              <div style={{fontSize:18,fontWeight:700}}>{fmt(ovsTotal.actual)}</div>
+              <ProgressBar value={ovsTotal.actual} max={ovsTotal.target} label={`해외 ${pctStr(ovsTotal.actual,ovsTotal.target)}`}/>
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🇰🇷 국내 상세</div>
+              <DT compact headers={["채널","목표","실적","달성률"]} rows={[
+                ["직판",fmt(d.direct.target),fmt(d.direct.actual),{v:pctStr(d.direct.actual,d.direct.target),color:pctClr(d.direct.actual,d.direct.target),bold:true}],
+                ["대리점",fmt(d.dealer.target),fmt(d.dealer.actual),{v:pctStr(d.dealer.actual,d.dealer.target),color:pctClr(d.dealer.actual,d.dealer.target),bold:true}],
+                [{v:"합계",bold:true},{v:fmt(domTotal.target),bold:true},{v:fmt(domTotal.actual),bold:true},{v:pctStr(domTotal.actual,domTotal.target),color:pctClr(domTotal.actual,domTotal.target),bold:true}]
+              ]}/>
+              <div style={{marginTop:8,fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🌏 해외 상세</div>
+              <DT compact headers={["지역","목표","실적","달성률"]} rows={
+                ovsEntries.map(e=>[e.name,fmt(e.target),fmt(e.actual),{v:pctStr(e.actual,e.target),color:pctClr(e.actual,e.target),bold:true}])
+                .concat([[{v:"합계",bold:true},{v:fmt(ovsTotal.target),bold:true},{v:fmt(ovsTotal.actual),bold:true},{v:pctStr(ovsTotal.actual,ovsTotal.target),color:pctClr(ovsTotal.actual,ovsTotal.target),bold:true}]])
+              }/>
+            </div>
+            {imChartData.length>0&&<div style={{height:220}}><ResponsiveContainer>
+              <BarChart data={imChartData} margin={{top:5,right:10,bottom:20,left:10}}>
+                <XAxis dataKey="name" tick={{fontSize:9,fill:"#cbd5e1",angle:-15,textAnchor:"end"}} axisLine={false} tickLine={false} interval={0}/>
+                <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
+                <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}개`]}/>
+                <Legend wrapperStyle={{fontSize:10}}/>
+                <Bar dataKey="목표" fill="#475569" opacity={0.4} radius={[3,3,0,0]}/>
+                <Bar dataKey="실적" fill={C.green} radius={[3,3,0,0]}/>
+              </BarChart>
+            </ResponsiveContainer></div>}
+          </div>
+        </>);
+      })()}
+      <Fn>※ 국내: 직판 = 병원 실사용(개봉) 수량, 대리점 = 유통 판매 수량. 해외: 미국/독일+EMEA/일본 = 현지 법인 인마켓 보고, 기타국가 = 선적(출고) 기준. 영업마케팅본부 주간업무보고 기반 월간 집계. 보고 기준이 법인마다 다를 수 있어 정확도 검증 중.</Fn>
     </Card>
 
     {/* ── B2. 손익 ── */}
@@ -752,7 +830,9 @@ function Dashboard(){
       try{
         const plD=await fetchSheet(sheetId,"Monthly_PL");
         let subD=[];try{subD=await fetchSheet(sheetId,"Monthly_Subsidiary");}catch(e2){errors.push("Subsidiary: "+e2.message);}
-        const ms=csvToMonthly(plD,subD);if(Object.keys(ms).length>0)setMS(ms);
+        let ms=csvToMonthly(plD,subD);
+        try{const imD=await fetchSheet(sheetId,"Monthly_Inmarket");ms=mergeInmarket(ms,imD);}catch(e2){errors.push("Inmarket: "+e2.message);}
+        if(Object.keys(ms).length>0)setMS(ms);
       }catch(e){errors.push("Monthly_PL: "+e.message);}
 
       try{const d=await fetchSheet(sheetId,"Quarterly_Summary");const qs=csvToQuarterly(d);if(Object.keys(qs).length>0)setQS(qs);}catch(e){errors.push("Quarterly: "+e.message);}
@@ -773,7 +853,7 @@ function Dashboard(){
     {/* Header */}
     <div style={{padding:"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
       <div>
-        <div style={{fontSize:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v4.5</span></div>
+        <div style={{fontSize:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v4.6</span></div>
         <div style={{fontSize:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div>
       </div>
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -799,7 +879,7 @@ function Dashboard(){
         </div>
         <div style={{marginTop:12,padding:10,background:"rgba(255,255,255,0.02)",borderRadius:6,fontSize:11,color:C.textDim,lineHeight:1.7}}>
           <strong style={{color:C.text}}>연결 방법:</strong><br/>
-          1. Google Sheets에서 스프레드시트 생성 → 시트명을 정확히 맞추기: Weekly_Shipments, Weekly_Treasury, Weekly_Backorder, Monthly_PL, Monthly_Subsidiary, Quarterly_Summary<br/>
+          1. Google Sheets에서 스프레드시트 생성 → 시트명을 정확히 맞추기: Weekly_Shipments, Weekly_Treasury, Weekly_Backorder, Monthly_PL, Monthly_Subsidiary, Monthly_Inmarket, Quarterly_Summary<br/>
           2. 파일 → 공유 → "링크가 있는 모든 사용자" → 뷰어 권한<br/>
           3. URL에서 Spreadsheet ID 복사: https://docs.google.com/spreadsheets/d/<strong style={{color:C.accent}}>[이 부분]</strong>/edit<br/>
           4. 위 입력란에 붙여넣기 → "동기화" 클릭
