@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, L
 import Papa from "papaparse";
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v4.6 — Google Sheets Integration           ║
+// ║  LIVSMED Executive Dashboard v4.7 — Google Sheets Integration           ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 // ── Password (변경 시 이 값만 수정) ──
@@ -252,8 +252,8 @@ function WeeklyTab({weekKey,WS}){
         </div>
       </div>
       {cashTrendData.length>1&&<div style={{marginTop:14}}>
-        <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 Net Cash 추이</div>
-        <div style={{height:100}}><ResponsiveContainer>
+        <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 Net Cash 추이 (최근 6주)</div>
+        <div style={{height:130}}><ResponsiveContainer>
           <LineChart data={cashTrendData} margin={{top:5,right:10,bottom:0,left:0}}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
             <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -264,8 +264,8 @@ function WeeklyTab({weekKey,WS}){
         </ResponsiveContainer></div>
       </div>}
       {cashTrendData.length>1&&<div style={{marginTop:10}}>
-        <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>💧 주간 순흐름</div>
-        <div style={{height:90}}><ResponsiveContainer>
+        <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>💧 주간 순흐름 (양=유입, 음=유출)</div>
+        <div style={{height:120}}><ResponsiveContainer>
           <AreaChart data={cashTrendData.map(d=>({...d,flowPos:d.flow>0?d.flow:0,flowNeg:d.flow<0?d.flow:0}))} margin={{top:5,right:10,bottom:0,left:0}}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
             <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -293,7 +293,7 @@ function WeeklyTab({weekKey,WS}){
             ]}/>
           </div>);})}
         </div>
-        {shipAchData.length>0&&<div style={{marginTop:10,height:90}}><ResponsiveContainer>
+        {shipAchData.length>0&&<div style={{marginTop:10,height:120}}><ResponsiveContainer>
           <BarChart data={shipAchData} layout="vertical" margin={{left:40,right:20,top:5,bottom:5}}>
             <XAxis type="number" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false}/>
             <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -304,9 +304,9 @@ function WeeklyTab({weekKey,WS}){
         </ResponsiveContainer></div>}
         <div style={{marginTop:6}}><ProgressBar value={dSM+oSM} max={dT+oT} label={`통합 달성률 (${fmt(dSM+oSM)} / ${fmt(dT+oT)})`} height={8}/></div>
         {shipTrend8.length>=2&&<div style={{marginTop:12}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {shipTrend8.length}주 출하 트렌드</div>
-          <div style={{height:160}}><ResponsiveContainer>
-            <BarChart data={shipTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs}))} barSize={20} margin={{top:5,right:10,bottom:0,left:0}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {shipTrend8.length}주 출하 트렌드 (AS/VS × 국내/해외)</div>
+          <div style={{height:200}}><ResponsiveContainer>
+            <BarChart data={shipTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs}))} barSize={24} margin={{top:5,right:10,bottom:0,left:0}}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
               <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -337,7 +337,7 @@ function WeeklyTab({weekKey,WS}){
             {o[rk].backlog!=null&&<Metric label="Backlog" value={fmt(o[rk].backlog)} unit="대" small/>}
           </div>);})}
         </div>
-        {ordAchData.length>0&&<div style={{marginTop:10,height:90}}><ResponsiveContainer>
+        {ordAchData.length>0&&<div style={{marginTop:10,height:120}}><ResponsiveContainer>
           <BarChart data={ordAchData} layout="vertical" margin={{left:40,right:20,top:5,bottom:5}}>
             <XAxis type="number" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false}/>
             <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -347,9 +347,9 @@ function WeeklyTab({weekKey,WS}){
           </BarChart>
         </ResponsiveContainer></div>}
         {ordTrend8.length>=2&&<div style={{marginTop:12}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {ordTrend8.length}주 수주 트렌드</div>
-          <div style={{height:160}}><ResponsiveContainer>
-            <BarChart data={ordTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs}))} barSize={20} margin={{top:5,right:10,bottom:0,left:0}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {ordTrend8.length}주 수주 트렌드 (AS/VS × 국내/해외)</div>
+          <div style={{height:200}}><ResponsiveContainer>
+            <BarChart data={ordTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs}))} barSize={24} margin={{top:5,right:10,bottom:0,left:0}}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
               <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -363,19 +363,58 @@ function WeeklyTab({weekKey,WS}){
           </ResponsiveContainer></div>
         </div>}
       </>):(<NoData msg="수주 데이터 미수신"/>)}
-      <Fn>※ PO 접수 기준. 국내 수주는 월말 집중 경향이 있어 1~2주차 수치가 낮은 것은 정상 패턴. Backlog(수주잔고) = 미출고 확정주문(긍정적 지표) ≠ 백오더(납기지연, 부정적 지표). 해외 수주는 PO 접수 ~ 선적까지 리드타임 존재.</Fn>
+      <Fn>※ PO 접수 기준, ArtiSential+ArtiSeal만 집계 (Stapler·Kit·Generator 등 제외). 국내/해외 분류 기준: 통화(KRW=국내, 非KRW=해외). 국내 수주는 월말 집중 경향이 있어 1~2주차 수치가 낮은 것은 정상 패턴. Backlog(수주잔고) = 미출고 확정주문(긍정적 지표) ≠ 백오더(납기지연, 부정적 지표). 해외 수주는 PO 접수 ~ 선적까지 리드타임 존재.</Fn>
     </Card>
 
     {/* ── A4. 백오더 ── */}
     <Card style={{marginBottom:0}}><SH icon="🚨" title="A4. 백오더" badge={<Badge color="green">매주 금요일</Badge>} desc="납기일을 초과하여 출하가 지연되고 있는 주문 수량. 고객 불만족 및 매출 이연 리스크의 지표입니다. 증가 추세이면 생산·물류 병목 점검이 필요합니다."/>
-      {bo&&<div style={{display:"flex",gap:20,alignItems:"baseline",flexWrap:"wrap"}}>
-        <Metric label="국내" value={bo.domestic} unit="대" trend={bo.domestic-(bo.prev?.domestic||0)} small/>
-        <Metric label="해외" value={bo.overseas} unit="대" trend={bo.overseas-(bo.prev?.overseas||0)} small/>
-        <Metric label="평균 지연" value={bo.avgDelay} unit="일" small/>
-        <Metric label="통합" value={bo.domestic+bo.overseas} unit="대" small/>
-      </div>}
-      {bo?.reasons?.length>0&&<div style={{fontSize:10,color:C.amber,marginTop:4}}>사유: {bo.reasons.join(", ")}</div>}
-      <Fn>※ 수량(대) 기준. 1개 PO에 복수 수량이 포함될 수 있어 PO 건수와 다름. 주요 사유: 대리점 보관요청(배송 일정 조율), 재고부족(생산 지연). 평균 지연일수 증가 시 고객 이탈 리스크 상승.</Fn>
+      {bo&&(()=>{
+        const total=bo.domestic+bo.overseas;
+        const prevTotal=(bo.prev?.domestic||0)+(bo.prev?.overseas||0);
+        const delta=total-prevTotal;
+        const sev=total>3000?"high":total>1000?"mid":"low";
+        const sevC=sev==="high"?C.red:sev==="mid"?C.amber:C.green;
+        const sevL=sev==="high"?"⚠️ 주의":sev==="mid"?"📋 관리":"✅ 양호";
+        return(<>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 2fr",gap:14,marginBottom:10}}>
+            <div style={{padding:14,background:`${sevC}08`,borderRadius:8,border:`1px solid ${sevC}22`,textAlign:"center"}}>
+              <div style={{fontSize:10,color:C.textDim,marginBottom:2}}>통합 백오더</div>
+              <div style={{fontSize:28,fontWeight:700,color:sevC}}>{fmt(total)}<span style={{fontSize:12,color:C.textMuted,marginLeft:2}}>대</span></div>
+              {delta!==0&&<div style={{fontSize:11,fontWeight:600,color:delta>0?C.red:C.green,marginTop:4}}>{delta>0?"▲":"▼"} {fmt(Math.abs(delta))}대 vs 전주</div>}
+              {delta===0&&prevTotal>0&&<div style={{fontSize:11,color:C.textMuted,marginTop:4}}>— 전주와 동일</div>}
+              <div style={{marginTop:6,fontSize:11,fontWeight:700,color:sevC}}>{sevL}</div>
+            </div>
+            <div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+                <div style={{padding:"10px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6}}>
+                  <Metric label="🇰🇷 국내" value={fmt(bo.domestic)} unit="대" trend={bo.domestic-(bo.prev?.domestic||0)} small/>
+                </div>
+                <div style={{padding:"10px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6}}>
+                  <Metric label="🌏 해외" value={fmt(bo.overseas)} unit="대" trend={bo.overseas-(bo.prev?.overseas||0)} small/>
+                </div>
+                <div style={{padding:"10px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6}}>
+                  <Metric label="⏱ 평균 지연" value={bo.avgDelay} unit="일" small/>
+                  {bo.prev?.avgDelay>0&&<div style={{fontSize:10,color:C.textDim}}>전주 {bo.prev.avgDelay}일</div>}
+                </div>
+              </div>
+              {bo.reasons?.length>0&&<div style={{marginTop:8,padding:"8px 10px",background:C.amberBg,borderRadius:6,fontSize:11,color:C.amber}}>
+                <span style={{fontWeight:700}}>지연 사유:</span> {bo.reasons.join(" · ")}
+              </div>}
+            </div>
+          </div>
+          {total>0&&<div style={{marginTop:4}}>
+            <div style={{display:"flex",fontSize:10,color:C.textMuted,marginBottom:3,justifyContent:"space-between"}}>
+              <span>국내 {fmt(bo.domestic)}대 ({(bo.domestic/total*100).toFixed(0)}%)</span>
+              <span>해외 {fmt(bo.overseas)}대 ({(bo.overseas/total*100).toFixed(0)}%)</span>
+            </div>
+            <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.05)",overflow:"hidden",display:"flex"}}>
+              <div style={{height:"100%",width:`${(bo.domestic/total)*100}%`,background:C.accent,borderRadius:"3px 0 0 3px"}}/>
+              <div style={{height:"100%",width:`${(bo.overseas/total)*100}%`,background:C.purple,borderRadius:"0 3px 3px 0"}}/>
+            </div>
+          </div>}
+        </>);
+      })()}
+      <Fn>※ 수량(대) 기준. 1개 PO에 복수 수량이 포함될 수 있어 PO 건수와 다름. 주요 사유: 대리점 보관요청(배송 일정 조율), 재고부족(생산 지연). 평균 지연일수 증가 시 고객 이탈 리스크 상승. 3,000대 초과 시 '주의', 1,000대 초과 시 '관리', 이하 '양호'.</Fn>
     </Card>
   </div>);
 }
@@ -433,8 +472,8 @@ function MonthlyTab({monthKey,MS}){
         </div>
       </div>
       <div style={{marginBottom:14}}>
-        <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:8}}>월별 매출 추이 (목표 vs 실적)</div>
-        <div style={{height:180}}><ResponsiveContainer>
+        <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:8}}>월별 매출 추이 — 목표(회색) vs 실적(파랑)</div>
+        <div style={{height:220}}><ResponsiveContainer>
           <BarChart data={mRevChart} margin={{top:5,right:10,bottom:0,left:0}}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
             <XAxis dataKey="m" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false}/>
@@ -473,7 +512,7 @@ function MonthlyTab({monthKey,MS}){
             return[r.name,fmt(r.val),r.target>0?fmt(r.target):"—",{v:r.target>0?pctStr(r.val,r.target):"—",color:r.target>0?pctClr(r.val,r.target):C.textMuted},{v:share,color:C.textMuted}];
           }).concat([[{v:"합계",bold:true},{v:fmt(regTotal),bold:true},{v:fmt(regData.reduce((s,r)=>s+(r.target||0),0)),bold:true},"—","100%"]])
         }/>
-        <div style={{height:200}}><ResponsiveContainer>
+        <div style={{height:240}}><ResponsiveContainer>
           <BarChart data={regData.map(r=>({name:r.name.replace(/[^\w가-힣\s]/g,"").trim(),실적:r.val,목표:r.target||0}))} margin={{top:5,right:10,bottom:20,left:10}}>
             <XAxis dataKey="name" tick={{fontSize:9,fill:"#cbd5e1",angle:-15,textAnchor:"end"}} axisLine={false} tickLine={false} interval={0}/>
             <YAxis tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -537,7 +576,7 @@ function MonthlyTab({monthKey,MS}){
                 .concat([[{v:"합계",bold:true},{v:fmt(ovsTotal.target),bold:true},{v:fmt(ovsTotal.actual),bold:true},{v:pctStr(ovsTotal.actual,ovsTotal.target),color:pctClr(ovsTotal.actual,ovsTotal.target),bold:true}]])
               }/>
             </div>
-            {imChartData.length>0&&<div style={{height:220}}><ResponsiveContainer>
+            {imChartData.length>0&&<div style={{height:260}}><ResponsiveContainer>
               <BarChart data={imChartData} margin={{top:5,right:10,bottom:20,left:10}}>
                 <XAxis dataKey="name" tick={{fontSize:9,fill:"#cbd5e1",angle:-15,textAnchor:"end"}} axisLine={false} tickLine={false} interval={0}/>
                 <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -574,7 +613,7 @@ function MonthlyTab({monthKey,MS}){
     <Card><SH icon="💸" title="B3. 비용 구조" badge={<Badge color="blue">월간</Badge>} desc="판관비를 5대 비용군으로 재분류하여 비용이 어디에 집중되는지를 파악합니다."/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
         <DT headers={["비용군","집행액(백만)","비중"]} rows={activeCosts.map(g=>{const share=tCA>0?((g.actual/tCA)*100).toFixed(1)+"%":"—";return[g.name,fmt(g.actual),{v:share,color:C.textMuted}];}).concat([[{v:"합계",bold:true},{v:fmt(tCA),bold:true},{v:"100%",bold:true}]])}/>
-        <div style={{height:180}}><ResponsiveContainer>
+        <div style={{height:220}}><ResponsiveContainer>
           <BarChart data={activeCosts} layout="vertical" margin={{left:65,right:10,top:5,bottom:5}}>
             <XAxis type="number" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false}/>
             <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -684,7 +723,7 @@ function QuarterlyTab({qKey,QS}){
 
     {/* ── C1. 분기별 실적 추이 ── */}
     <Card><SH icon="📊" title="C1. 분기별 실적 추이" badge={<Badge color="purple">분기 확정</Badge>} desc="분기별 확정 손익보고 기준 매출 및 영업손실 추이. 월별 가결산과 달리 감사 수준의 확정치이며, 이전 분기 수치도 최신 확정본으로 소급 반영됩니다."/>
-      <div style={{height:220}}><ResponsiveContainer>
+      <div style={{height:260}}><ResponsiveContainer>
         <ComposedChart data={c1Data} margin={{top:10,right:40,bottom:0,left:0}}>
           <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
           <XAxis dataKey="q" tick={{fontSize:11,fill:"#cbd5e1"}} axisLine={false}/>
@@ -723,8 +762,8 @@ function QuarterlyTab({qKey,QS}){
           })}/>
           {isFY26&&entityChartData.some(d=>d.실적>0||d.목표>0)&&<div style={{marginTop:12}}>
             <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📊 법인별 목표 vs 실적 (억원)</div>
-            <div style={{height:130}}><ResponsiveContainer>
-              <BarChart data={entityChartData} barSize={16} margin={{top:5,right:10,bottom:5,left:0}}>
+            <div style={{height:170}}><ResponsiveContainer>
+              <BarChart data={entityChartData} barSize={18} margin={{top:5,right:10,bottom:5,left:0}}>
                 <XAxis dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} unit="억"/>
                 <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${v.toFixed(1)}억`,n]}/>
@@ -778,8 +817,8 @@ function QuarterlyTab({qKey,QS}){
           return{q:d.q,현금성자산:d.cash,가용순현금:d.net,순유출:outflow>0?outflow:null,매출:rev};
         });
         return(<>
-          <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>💰 현금 잔액 추이</div>
-          <div style={{height:160}}><ResponsiveContainer>
+          <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>💰 현금 잔액 추이 (현금성자산 vs 가용순현금)</div>
+          <div style={{height:200}}><ResponsiveContainer>
             <LineChart data={c4Data} margin={{top:5,right:10,bottom:0,left:0}}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
               <XAxis dataKey="q" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -791,8 +830,8 @@ function QuarterlyTab({qKey,QS}){
             </LineChart>
           </ResponsiveContainer></div>
           {c4Data.some(d=>d.순유출!=null||d.매출!=null)&&<div style={{marginTop:14}}>
-            <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📊 분기 순유출 vs 매출</div>
-            <div style={{height:140}}><ResponsiveContainer>
+            <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📊 분기 순유출(빨강) vs 매출(파랑)</div>
+            <div style={{height:180}}><ResponsiveContainer>
               <BarChart data={c4Data} barSize={20} margin={{top:5,right:10,bottom:0,left:0}}>
                 <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
                 <XAxis dataKey="q" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
@@ -895,7 +934,7 @@ function Dashboard(){
     {/* Header */}
     <div style={{padding:"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
       <div>
-        <div style={{fontSize:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v4.6</span></div>
+        <div style={{fontSize:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v4.7</span></div>
         <div style={{fontSize:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div>
       </div>
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
