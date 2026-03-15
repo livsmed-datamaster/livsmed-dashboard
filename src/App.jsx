@@ -426,8 +426,7 @@ function MonthlyTab({monthKey,MS}){
           </BarChart>
         </ResponsiveContainer></div>
       </div>
-      {(()=>{const miss=regData.filter(r=>r.target>0&&r.val<r.target*0.8);return miss.length>0?<InfoBox color={C.amber}>{miss.map(r=>r.name.replace(/[^\w가-힣\s]/g,"").trim()).join(", ")} 목표 80% 미달 — 해외 법인 매출이 연결 전체 Gap의 주요인입니다. 전분기 대비 추이 변화를 주시하세요.</InfoBox>:null;})()}
-      <Fn>※ 가결산 상세 시트 지역별 매출. 비중(%) = 해당 지역 매출 ÷ 전체 연결 매출. 기타유럽/기타아시아 분리는 데이터 확보 시 자동 반영.</Fn>
+      <Fn>※ 가결산 상세 시트 지역별 매출. 비중(%) = 해당 지역 매출 ÷ 전체 연결 매출. 지역별 목표 달성률은 해외사업실 목표 데이터 연동 후 표시 예정.</Fn>
     </Card>
 
     {/* ── B2. 손익 ── */}
