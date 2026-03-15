@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend, Cell, ComposedChart } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend, Cell, ComposedChart, AreaChart, Area, ReferenceLine } from "recharts";
 import Papa from "papaparse";
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -206,8 +206,9 @@ function WeeklyTab({weekKey,WS}){
   const ordAchData=hasOrd?[{name:"국내",actual:sumP(o.domestic.mtd),target:getTT("domestic",mi)},{name:"해외",actual:sumP(o.overseas.mtd),target:getTT("overseas",mi)}]:[];
   // W-1/W-2: 8-week trend data for shipments and orders
   const trend8wKeys=wKeys.slice(Math.max(0,wIdx-7),wIdx+1);
-  const shipTrend8=trend8wKeys.map(k=>{const d=WS[k]?.shipments;const lbl=k.replace(/^\d{4}[\.\-]/,"");return{wk:lbl,AS_dom:d?.domestic?.weekly?.ArtiSential||0,AS_ovs:d?.overseas?.weekly?.ArtiSential||0,Seal_dom:d?.domestic?.weekly?.ArtiSeal||0,Seal_ovs:d?.overseas?.weekly?.ArtiSeal||0};}).filter(d=>d.AS_dom+d.AS_ovs+d.Seal_dom+d.Seal_ovs>0);
-  const ordTrend8=trend8wKeys.map(k=>{const d=WS[k]?.orders;const lbl=k.replace(/^\d{4}[\.\-]/,"");return{wk:lbl,AS_dom:d?.domestic?.weekly?.ArtiSential||0,AS_ovs:d?.overseas?.weekly?.ArtiSential||0,Seal_dom:d?.domestic?.weekly?.ArtiSeal||0,Seal_ovs:d?.overseas?.weekly?.ArtiSeal||0};}).filter(d=>d.AS_dom+d.AS_ovs+d.Seal_dom+d.Seal_ovs>0);
+  const shipTrend8=trend8wKeys.map(k=>{const d=WS[k]?.shipments;const lbl=k.replace(/^\d{4}[\.\-]/,"");return{wk:lbl,AS_dom:d?.domestic?.weekly?.ArtiSential||0,AS_ovs:d?.overseas?.weekly?.ArtiSential||0,VS_dom:d?.domestic?.weekly?.ArtiSeal||0,VS_ovs:d?.overseas?.weekly?.ArtiSeal||0};}).filter(d=>d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs>0);
+  const ordTrend8=trend8wKeys.map(k=>{const d=WS[k]?.orders;const lbl=k.replace(/^\d{4}[\.\-]/,"");return{wk:lbl,AS_dom:d?.domestic?.weekly?.ArtiSential||0,AS_ovs:d?.overseas?.weekly?.ArtiSential||0,VS_dom:d?.domestic?.weekly?.ArtiSeal||0,VS_ovs:d?.overseas?.weekly?.ArtiSeal||0};}).filter(d=>d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs>0);
+  const trendTooltip=(v,n,_,payload)=>{if(!payload||!payload.length)return[`${fmt(v)}대`,n];const total=payload.reduce((s,p)=>s+(p.value||0),0);return[`${fmt(v)}대`,`${n} (합계 ${fmt(total)}대)`];};
   return(<div>
     <TabIntro color={C.green} icon="📡" title="Weekly — 주간 운영 현황">
       주간 단위로 업데이트되는 <strong style={{color:C.text}}>운영 지표</strong>입니다. 자금 현황(월요일)과 출하·수주·백오더(금요일)가 매주 갱신됩니다.<br/>
@@ -244,9 +245,10 @@ function WeeklyTab({weekKey,WS}){
           <Metric label="월평균 Burn Rate" value={monthlyBurnRate!=null?`△${fmt(Math.abs(monthlyBurnRate))}`:"—"} unit="백만/월" color={C.amber} small/>
           <Metric label="Runway" value={tr.runway} unit="개월" small/>
         </div>
-        <div style={{display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:8,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
-          <div style={{fontSize:32,fontWeight:700,color:tr.netCash>100000?C.green:C.amber}}>{(tr.netCash/1000).toFixed(1)}<span style={{fontSize:14,color:C.textMuted}}>십억</span></div>
-          <div style={{fontSize:10,color:C.textDim}}>Net Cash</div>
+        <div style={{display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
+          <div style={{fontSize:28,fontWeight:700,color:tr.netCash>100000?C.green:C.amber}}>{fmt(Math.round(tr.netCash/100))}<span style={{fontSize:13,color:C.textMuted,marginLeft:2}}>억</span></div>
+          <div style={{fontSize:11,fontWeight:600,color:C.text,marginTop:2}}>가용 순현금</div>
+          <div style={{fontSize:9,color:C.textDim,marginTop:3,textAlign:"center",lineHeight:1.4}}>보통예금+정기예금+ELB+외화−차입금</div>
         </div>
       </div>
       {cashTrendData.length>1&&<div style={{marginTop:14}}>
@@ -264,13 +266,15 @@ function WeeklyTab({weekKey,WS}){
       {cashTrendData.length>1&&<div style={{marginTop:10}}>
         <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>💧 주간 순흐름</div>
         <div style={{height:90}}><ResponsiveContainer>
-          <BarChart data={cashTrendData} margin={{top:5,right:10,bottom:0,left:0}}>
+          <AreaChart data={cashTrendData.map(d=>({...d,flowPos:d.flow>0?d.flow:0,flowNeg:d.flow<0?d.flow:0}))} margin={{top:5,right:10,bottom:0,left:0}}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
             <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
             <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만`,"순흐름"]}/>
-            <Bar dataKey="flow" radius={[3,3,0,0]}>{cashTrendData.map((d,i)=>(<Cell key={i} fill={d.flow>=0?"#34d399":"#f87171"} opacity={0.8}/>))}</Bar>
-          </BarChart>
+            <ReferenceLine y={0} stroke={C.textDim} strokeDasharray="3 3"/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>{if(n==="유입")return v>0?[`+${fmt(v)}백만`,"유입"]:[null,null];if(n==="유출")return v<0?[`${fmt(v)}백만`,"유출"]:[null,null];return[`${fmt(v)}백만`,n];}} itemSorter={()=>0}/>
+            <Area type="monotone" dataKey="flowPos" stroke="#34d399" fill="#34d399" fillOpacity={0.35} strokeWidth={2} name="유입" dot={{r:3,fill:"#34d399"}}/>
+            <Area type="monotone" dataKey="flowNeg" stroke="#f87171" fill="#f87171" fillOpacity={0.35} strokeWidth={2} name="유출" dot={{r:3,fill:"#f87171"}}/>
+          </AreaChart>
         </ResponsiveContainer></div>
       </div>}</>}
       <Fn>※ 재무본부 주간 자금보고 기준. Net Cash = 보통예금+정기예금+ELB+외화−차입금. 당월 누적 흐름 = 해당 월 주간흐름 합산. 월평균 Burn Rate = Net Cash ÷ Runway (매월 평균 순유출 규모). Runway = Net Cash ÷ 최근 3개월 월평균 순유출. 주간흐름(양=현금 유입 우위, 음=유출 우위). ELB = 주가연계파생결합사채(Equity-Linked Bond), 외화는 USD·JPY 환산, 차입금은 IBK기업은행 운영자금대출.</Fn>
@@ -302,16 +306,16 @@ function WeeklyTab({weekKey,WS}){
         {shipTrend8.length>=2&&<div style={{marginTop:12}}>
           <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {shipTrend8.length}주 출하 트렌드</div>
           <div style={{height:160}}><ResponsiveContainer>
-            <BarChart data={shipTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.Seal_dom+d.Seal_ovs}))} margin={{top:5,right:10,bottom:0,left:0}}>
+            <BarChart data={shipTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs}))} margin={{top:5,right:10,bottom:0,left:0}}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
               <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/>
+              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={trendTooltip}/>
               <Legend wrapperStyle={{fontSize:9}}/>
               <Bar dataKey="AS_dom" name="AS 국내" stackId="a" fill={C.accent}/>
               <Bar dataKey="AS_ovs" name="AS 해외" stackId="a" fill={C.green}/>
-              <Bar dataKey="Seal_dom" name="Seal 국내" stackId="a" fill={C.amber}/>
-              <Bar dataKey="Seal_ovs" name="Seal 해외" stackId="a" fill={C.purple} radius={[3,3,0,0]}/>
+              <Bar dataKey="VS_dom" name="VS 국내" stackId="a" fill={C.amber}/>
+              <Bar dataKey="VS_ovs" name="VS 해외" stackId="a" fill={C.purple} radius={[3,3,0,0]}/>
             </BarChart>
           </ResponsiveContainer></div>
         </div>}
@@ -345,16 +349,16 @@ function WeeklyTab({weekKey,WS}){
         {ordTrend8.length>=2&&<div style={{marginTop:12}}>
           <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {ordTrend8.length}주 수주 트렌드</div>
           <div style={{height:160}}><ResponsiveContainer>
-            <BarChart data={ordTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.Seal_dom+d.Seal_ovs}))} margin={{top:5,right:10,bottom:0,left:0}}>
+            <BarChart data={ordTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs}))} margin={{top:5,right:10,bottom:0,left:0}}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
               <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/>
+              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={trendTooltip}/>
               <Legend wrapperStyle={{fontSize:9}}/>
               <Bar dataKey="AS_dom" name="AS 국내" stackId="a" fill={C.accent}/>
               <Bar dataKey="AS_ovs" name="AS 해외" stackId="a" fill={C.green}/>
-              <Bar dataKey="Seal_dom" name="Seal 국내" stackId="a" fill={C.amber}/>
-              <Bar dataKey="Seal_ovs" name="Seal 해외" stackId="a" fill={C.purple} radius={[3,3,0,0]}/>
+              <Bar dataKey="VS_dom" name="VS 국내" stackId="a" fill={C.amber}/>
+              <Bar dataKey="VS_ovs" name="VS 해외" stackId="a" fill={C.purple} radius={[3,3,0,0]}/>
             </BarChart>
           </ResponsiveContainer></div>
         </div>}
@@ -462,7 +466,7 @@ function MonthlyTab({monthKey,MS}){
 
     {/* ── B1-2. 지역별 매출 분해 ── */}
     <Card>
-      <SH icon="🗺️" title="B1-2. 지역별 매출 분해" badge={<Badge color="blue">월간 가결산</Badge>} desc="연결 가결산 상세 시트 기준 지역별 매출 분해. 매출이 어느 시장에 집중되고 어디가 부진한지를 조기 식별하기 위한 지표입니다. 달성률이 80% 미만인 지역은 하단에 자동으로 경고가 표시됩니다."/>
+      <SH icon="🗺️" title="B1-2. 지역별 매출 Breakdown" badge={<Badge color="blue">월간 가결산</Badge>} desc="연결 가결산 상세 시트 기준 지역별 매출 분해. 매출이 어느 시장에 집중되고 어디가 부진한지를 조기 식별하기 위한 지표입니다. 달성률이 80% 미만인 지역은 하단에 자동으로 경고가 표시됩니다."/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
         <DT headers={["지역","실적(백만)","목표(백만)","달성률","비중"]} rows={
           regData.map(r=>{const share=regTotal>0?((r.val/regTotal)*100).toFixed(1)+"%":"—";
@@ -473,7 +477,7 @@ function MonthlyTab({monthKey,MS}){
           <BarChart data={regData.map(r=>({name:r.name.replace(/[^\w가-힣\s]/g,"").trim(),실적:r.val,목표:r.target||0}))} margin={{top:5,right:10,bottom:20,left:10}}>
             <XAxis dataKey="name" tick={{fontSize:9,fill:"#cbd5e1",angle:-15,textAnchor:"end"}} axisLine={false} tickLine={false} interval={0}/>
             <YAxis tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만`]}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}백만`,n]}/>
             <Legend wrapperStyle={{fontSize:10}}/>
             <Bar dataKey="목표" fill="#475569" opacity={0.4} radius={[3,3,0,0]}/>
             <Bar dataKey="실적" radius={[3,3,0,0]}>
@@ -674,7 +678,7 @@ function QuarterlyTab({qKey,QS}){
     <TabIntro color={C.purple} icon="🏛️" title="Quarterly — 분기 확정 실적 & 재무 건전성">
       분기 결산 확정 후 산출되는 <strong style={{color:C.text}}>감사 수준의 확정 재무제표</strong> 기반 지표입니다. 월별 가결산과 달리 비용까지 확정된 최종 수치입니다.<br/>
       핵심 질문: <strong style={{color:C.text}}>"분기별 실적이 연간 목표 궤도에 있는가? 해외법인 투자 효율은? 재무 구조는 안전한가?"</strong><br/>
-      C1(실적 추이)→C2(해외법인)→C3(재무 건전성)→C4(현금성자산)→C5(IPO 공모자금) 순으로, 거시적 경영 상황과 전략적 의사결정을 위한 데이터를 제공합니다.
+      C1(실적 추이)→C2(해외법인)→C3(재무 건전성)→C4(현금 소진·Runway)→C5(IPO 공모자금) 순으로, 거시적 경영 상황과 전략적 의사결정을 위한 데이터를 제공합니다.
     </TabIntro>
     <div style={{padding:"8px 12px",marginBottom:14,borderRadius:6,background:"rgba(167,139,250,0.08)",border:`1px solid ${C.purple}33`,fontSize:11,color:C.purple}}>ⓘ <strong>{Q.label}</strong> · 갱신: {Q.updated}</div>
 
@@ -719,10 +723,10 @@ function QuarterlyTab({qKey,QS}){
           {entityChartData.some(d=>d.실적>0||d.목표>0)&&<div style={{marginTop:12}}>
             <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📊 법인별 목표 vs 실적 (억원)</div>
             <div style={{height:130}}><ResponsiveContainer>
-              <BarChart data={entityChartData} margin={{top:5,right:10,bottom:5,left:0}}>
+              <BarChart data={entityChartData} barSize={16} margin={{top:5,right:10,bottom:5,left:0}}>
                 <XAxis dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} unit="억"/>
-                <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${v.toFixed(1)}억`]}/>
+                <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${v.toFixed(1)}억`,n]}/>
                 <Legend wrapperStyle={{fontSize:10}}/>
                 <Bar dataKey="목표" fill="#475569" opacity={0.4} radius={[3,3,0,0]}/>
                 <Bar dataKey="실적" radius={[3,3,0,0]}>
@@ -760,19 +764,46 @@ function QuarterlyTab({qKey,QS}){
     </Card>
 
     {/* ── C4. 현금성자산 및 Net Cash 추이 ── */}
-    <Card><SH icon="📉" title="C4. 현금성자산 및 Net Cash 추이" badge={<Badge color="purple">분기 확정</Badge>} desc="분기별 현금성자산과 Net Cash의 변화 추이. IPO 이후 현금 소진 속도를 모니터링하여, 추가 자금 조달 필요 시점을 사전에 파악하기 위한 지표입니다."/>
-      <div style={{height:180}}><ResponsiveContainer>
-        <LineChart data={Q.cashTrend} margin={{top:5,right:10,bottom:0,left:0}}>
-          <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
-          <XAxis dataKey="q" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-          <YAxis tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false} unit="억"/>
-          <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}}/>
-          <Legend wrapperStyle={{fontSize:10}}/>
-          <Line type="monotone" dataKey="cash" stroke="#60a5fa" strokeWidth={2} dot={{r:3}} name="현금성자산"/>
-          <Line type="monotone" dataKey="net" stroke="#34d399" strokeWidth={2} dot={{r:3}} name="Net Cash"/>
-        </LineChart>
-      </ResponsiveContainer></div>
-      <Fn>※ 현금성자산 = 보통예금+정기예금+ELB+외화 합산. Net Cash = 현금성자산−차입금. IPO(FY25 4Q) 유입 후 분기별 감소 추세를 추적합니다.</Fn>
+    <Card><SH icon="📉" title="C4. 현금성자산 및 가용 순현금 추이" badge={<Badge color="purple">분기 확정</Badge>} desc="분기별 현금성자산과 가용 순현금(Net Cash)의 변화 추이. 순유출액으로 현금 소진 속도를, 매출과 대비하여 수익화 진행을, Runway로 현재 현금으로 버틸 수 있는 기간을 함께 모니터링합니다."/>
+      {(()=>{
+        const ct=Q.cashTrend;
+        const c4Data=ct.map((d,i)=>{
+          const prevNet=i>0?ct[i-1].net:null;
+          const outflow=prevNet!=null&&prevNet>d.net?Math.round((prevNet-d.net)*10)/10:0;
+          // match revenue from plTrend by Q number
+          const qNum=d.q.match(/(\d)[Qq]/)?.[1]||d.q.match(/[Qq](\d)/)?.[1]||"";
+          const pl=Q.plTrend.find(p=>{const pq=p.q.match(/(\d)[Qq]/)?.[1]||p.q.match(/[Qq](\d)/)?.[1]||"";return pq===qNum&&pq!=="";});
+          const rev=pl?.rev||null;
+          const runway=outflow>0?Math.round(d.net/(outflow/3)):null;
+          return{q:d.q,현금성자산:d.cash,가용순현금:d.net,순유출:outflow>0?outflow:null,매출:rev,Runway:runway};
+        });
+        return(<>
+          <div style={{height:220}}><ResponsiveContainer>
+            <ComposedChart data={c4Data} margin={{top:10,right:40,bottom:0,left:0}}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
+              <XAxis dataKey="q" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
+              <YAxis yAxisId="left" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} unit="억"/>
+              <YAxis yAxisId="right" orientation="right" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} unit="월"/>
+              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>{if(v==null)return["—",n];if(n==="Runway")return[`${v}개월`,n];return[`${v}억`,n];}}/>
+              <Legend wrapperStyle={{fontSize:9}}/>
+              <Bar yAxisId="left" dataKey="순유출" fill={C.red} opacity={0.5} barSize={14} radius={[3,3,0,0]} name="순유출"/>
+              <Bar yAxisId="left" dataKey="매출" fill={C.accent} opacity={0.6} barSize={14} radius={[3,3,0,0]} name="매출"/>
+              <Line yAxisId="left" type="monotone" dataKey="가용순현금" stroke="#34d399" strokeWidth={2} dot={{r:3,fill:"#34d399"}} name="가용순현금"/>
+              <Line yAxisId="left" type="monotone" dataKey="현금성자산" stroke="#60a5fa" strokeWidth={1.5} dot={{r:3,fill:"#60a5fa"}} strokeDasharray="4 2" name="현금성자산"/>
+              <Line yAxisId="right" type="monotone" dataKey="Runway" stroke="#fbbf24" strokeWidth={2} dot={{r:4,fill:"#fbbf24"}} strokeDasharray="5 3" name="Runway" connectNulls={false}/>
+            </ComposedChart>
+          </ResponsiveContainer></div>
+          {c4Data.filter(d=>d.Runway!=null).length>0&&<div style={{marginTop:6,display:"flex",gap:16,flexWrap:"wrap"}}>
+            {c4Data.filter(d=>d.Runway!=null).slice(-2).map((d,i)=>(
+              <div key={i} style={{fontSize:11,color:C.textMuted}}>
+                {d.q} Runway: <span style={{fontWeight:700,color:d.Runway>18?C.green:d.Runway>12?C.amber:C.red}}>{d.Runway}개월</span>
+                {d.순유출!=null&&<span style={{marginLeft:8}}>순유출 △{d.순유출}억</span>}
+              </div>
+            ))}
+          </div>}
+        </>);
+      })()}
+      <Fn>※ 현금성자산 = 보통예금+정기예금+ELB+외화. 가용순현금 = 현금성자산−차입금. 순유출 = 전분기 대비 가용순현금 감소분 (IPO 유입 분기 등 증가 시 0). Runway = 가용순현금 ÷ (분기순유출÷3), 현재 속도로 몇 개월 운영 가능한지. 매출은 C1 분기 확정 실적.</Fn>
     </Card>
 
     {/* ── C5. IPO 공모자금 사용 현황 ── */}
