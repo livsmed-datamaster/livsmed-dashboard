@@ -125,12 +125,20 @@ function csvToMonthly(plRows,subRows){
 }
 
 function mergeInmarket(store,rows){
-  for(const r of(rows||[])){
+  const sorted=[...(rows||[])].sort((a,b)=>(a.month_key||"").localeCompare(b.month_key||""));
+  let prev=null;
+  for(const r of sorted){
     const k=(r.month_key||"").trim();if(!k||!store[k])continue;
-    store[k].inmarket={
-      domestic:{direct:{target:pN(r.dom_direct_target),actual:pN(r.dom_direct_actual)},dealer:{target:pN(r.dom_dealer_target),actual:pN(r.dom_dealer_actual)}},
-      overseas:{us:{target:pN(r.ovs_us_target),actual:pN(r.ovs_us_actual)},de:{target:pN(r.ovs_de_target),actual:pN(r.ovs_de_actual)},jp:{target:pN(r.ovs_jp_target),actual:pN(r.ovs_jp_actual)},other:{target:pN(r.ovs_other_target),actual:pN(r.ovs_other_actual)}}
+    const cur={
+      domestic:{direct:pN(r.dom_direct_actual),dealer:pN(r.dom_dealer_actual)},
+      overseas:{us:pN(r.ovs_us_actual),de:pN(r.ovs_de_actual),jp:pN(r.ovs_jp_actual)}
     };
+    cur.domTotal=cur.domestic.direct+cur.domestic.dealer;
+    cur.ovsTotal=cur.overseas.us+cur.overseas.de+cur.overseas.jp;
+    cur.grandTotal=cur.domTotal+cur.ovsTotal;
+    if(prev){cur.prev={domTotal:prev.domTotal,ovsTotal:prev.ovsTotal,grandTotal:prev.grandTotal,overseas:{us:prev.overseas.us,de:prev.overseas.de,jp:prev.overseas.jp},domestic:{direct:prev.domestic.direct,dealer:prev.domestic.dealer}};}
+    store[k].inmarket=cur;
+    prev=cur;
   }
   return store;
 }
@@ -533,63 +541,57 @@ function MonthlyTab({monthKey,MS}){
 
     {/* ── B1-3. 인마켓 ── */}
     <Card>
-      <SH icon="🏥" title="B1-3. 인마켓" badge={<Badge color="blue">월간</Badge>} desc="최종 유통 단계의 판매/사용 수량(개). 출하·매출이 '공급측' 지표라면, 인마켓은 '수요측'에 가까운 지표입니다. 국내는 직판(병원 실사용)과 대리점으로 구분되며, 해외는 법인 인마켓(미국·독일+EMEA·일본)과 기타국가 선적으로 구분됩니다."/>
+      <SH icon="🏥" title="B1-3. 인마켓" badge={<Badge color="blue">월간</Badge>} desc="최종 유통 단계의 판매/사용 수량(AS+VS, 개). 출하·매출이 '공급측' 지표라면, 인마켓은 '수요측'에 가까운 지표입니다. 해외는 법인(미국·독일·일본)의 현지 판매 실적이며, 국내는 영업마케팅본부 데이터 확보 시 반영 예정입니다."/>
       {(()=>{
         const im=M.inmarket;
         if(!im)return<NoData msg="인마켓 데이터 미입력 (Monthly_Inmarket 시트 확인)"/>;
-        const d=im.domestic,ov=im.overseas;
-        const domTotal={target:(d.direct.target||0)+(d.dealer.target||0),actual:(d.direct.actual||0)+(d.dealer.actual||0)};
-        const ovsEntries=[{name:"🇺🇸 미국",...ov.us},{name:"🇩🇪 독일+EMEA",...ov.de},{name:"🇯🇵 일본",...ov.jp},{name:"🌍 기타(선적)",...ov.other}];
-        const ovsTotal={target:ovsEntries.reduce((s,e)=>s+(e.target||0),0),actual:ovsEntries.reduce((s,e)=>s+(e.actual||0),0)};
-        const grandTotal={target:domTotal.target+ovsTotal.target,actual:domTotal.actual+ovsTotal.actual};
-        const imChartData=[{name:"직판",목표:d.direct.target,실적:d.direct.actual},{name:"대리점",목표:d.dealer.target,실적:d.dealer.actual},...ovsEntries.map(e=>({name:e.name.replace(/[^\w가-힣+\s]/g,"").trim(),목표:e.target,실적:e.actual}))].filter(x=>x.목표>0||x.실적>0);
+        const d=im.domestic,ov=im.overseas,pr=im.prev;
+        const deltaStr=(cur,prev)=>{if(prev==null||prev===undefined)return"";const diff=cur-prev;if(diff===0)return<span style={{fontSize:10,color:C.textDim}}>→</span>;return<span style={{fontSize:10,color:diff>0?C.green:C.red}}>{diff>0?`▲${fmt(diff)}`:`▼${fmt(Math.abs(diff))}`}</span>;};
+        const ovsEntries=[{name:"🇺🇸 미국",val:ov.us,prev:pr?.overseas?.us},{name:"🇩🇪 독일",val:ov.de,prev:pr?.overseas?.de},{name:"🇯🇵 일본",val:ov.jp,prev:pr?.overseas?.jp}];
+        const imChartData=[{name:"직판",실적:d.direct},{name:"대리점",실적:d.dealer},...ovsEntries.map(e=>({name:e.name.replace(/[^\w가-힣+\s]/g,"").trim(),실적:e.val}))].filter(x=>x.실적>0);
         return(<>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:14}}>
             <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
-              <div style={{fontSize:10,color:C.textDim}}>통합 인마켓</div>
-              <div style={{fontSize:22,fontWeight:700}}>{fmt(grandTotal.actual)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div>
-              <div style={{fontSize:11,color:C.textDim}}>목표 {fmt(grandTotal.target)}</div>
-              <div style={{fontSize:14,fontWeight:700,color:pctClr(grandTotal.actual,grandTotal.target),marginTop:4}}>달성률 {pctStr(grandTotal.actual,grandTotal.target)}</div>
+              <div style={{fontSize:10,color:C.textDim}}>해외 법인 합계</div>
+              <div style={{fontSize:22,fontWeight:700}}>{fmt(im.ovsTotal)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div>
+              {pr&&<div style={{marginTop:2}}>{deltaStr(im.ovsTotal,pr.ovsTotal)} <span style={{fontSize:10,color:C.textDim}}>전월비</span></div>}
             </div>
             <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
               <div style={{fontSize:10,color:C.textDim}}>🇰🇷 국내</div>
-              <div style={{fontSize:18,fontWeight:700}}>{fmt(domTotal.actual)}</div>
-              <ProgressBar value={domTotal.actual} max={domTotal.target} label={`국내 ${pctStr(domTotal.actual,domTotal.target)}`}/>
+              <div style={{fontSize:18,fontWeight:700}}>{im.domTotal>0?fmt(im.domTotal):<span style={{fontSize:12,color:C.textDim}}>데이터 대기</span>}</div>
+              {pr&&im.domTotal>0&&<div style={{marginTop:2}}>{deltaStr(im.domTotal,pr.domTotal)} <span style={{fontSize:10,color:C.textDim}}>전월비</span></div>}
             </div>
             <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
-              <div style={{fontSize:10,color:C.textDim}}>🌏 해외</div>
-              <div style={{fontSize:18,fontWeight:700}}>{fmt(ovsTotal.actual)}</div>
-              <ProgressBar value={ovsTotal.actual} max={ovsTotal.target} label={`해외 ${pctStr(ovsTotal.actual,ovsTotal.target)}`}/>
+              <div style={{fontSize:10,color:C.textDim}}>통합</div>
+              <div style={{fontSize:18,fontWeight:700}}>{fmt(im.grandTotal)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div>
+              {pr&&<div style={{marginTop:2}}>{deltaStr(im.grandTotal,pr.grandTotal)} <span style={{fontSize:10,color:C.textDim}}>전월비</span></div>}
             </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
             <div>
-              <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🇰🇷 국내 상세</div>
-              <DT compact headers={["채널","목표","실적","달성률"]} rows={[
-                ["직판",fmt(d.direct.target),fmt(d.direct.actual),{v:pctStr(d.direct.actual,d.direct.target),color:pctClr(d.direct.actual,d.direct.target),bold:true}],
-                ["대리점",fmt(d.dealer.target),fmt(d.dealer.actual),{v:pctStr(d.dealer.actual,d.dealer.target),color:pctClr(d.dealer.actual,d.dealer.target),bold:true}],
-                [{v:"합계",bold:true},{v:fmt(domTotal.target),bold:true},{v:fmt(domTotal.actual),bold:true},{v:pctStr(domTotal.actual,domTotal.target),color:pctClr(domTotal.actual,domTotal.target),bold:true}]
-              ]}/>
-              <div style={{marginTop:8,fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🌏 해외 상세</div>
-              <DT compact headers={["지역","목표","실적","달성률"]} rows={
-                ovsEntries.map(e=>[e.name,fmt(e.target),fmt(e.actual),{v:pctStr(e.actual,e.target),color:pctClr(e.actual,e.target),bold:true}])
-                .concat([[{v:"합계",bold:true},{v:fmt(ovsTotal.target),bold:true},{v:fmt(ovsTotal.actual),bold:true},{v:pctStr(ovsTotal.actual,ovsTotal.target),color:pctClr(ovsTotal.actual,ovsTotal.target),bold:true}]])
+              <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🌏 해외 법인 상세</div>
+              <DT compact headers={["법인","실적(개)","전월비"]} rows={
+                ovsEntries.map(e=>[e.name,fmt(e.val),{v:e.prev!=null?(e.val-e.prev>=0?`▲${fmt(e.val-e.prev)}`:`▼${fmt(Math.abs(e.val-e.prev))}`):"—",color:e.prev!=null?(e.val-e.prev>=0?C.green:C.red):C.textDim}])
+                .concat([[{v:"합계",bold:true},{v:fmt(im.ovsTotal),bold:true},{v:pr?(im.ovsTotal-pr.ovsTotal>=0?`▲${fmt(im.ovsTotal-pr.ovsTotal)}`:`▼${fmt(Math.abs(im.ovsTotal-pr.ovsTotal))}`):"—",color:pr?(im.ovsTotal-pr.ovsTotal>=0?C.green:C.red):C.textDim,bold:true}]])
               }/>
+              {im.domTotal>0&&<><div style={{marginTop:8,fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🇰🇷 국내 상세</div>
+              <DT compact headers={["채널","실적(개)","전월비"]} rows={[
+                ["직판",fmt(d.direct),{v:pr?(d.direct-pr.domestic.direct>=0?`▲${fmt(d.direct-pr.domestic.direct)}`:`▼${fmt(Math.abs(d.direct-pr.domestic.direct))}`):"—",color:pr?(d.direct-pr.domestic.direct>=0?C.green:C.red):C.textDim}],
+                ["대리점",fmt(d.dealer),{v:pr?(d.dealer-pr.domestic.dealer>=0?`▲${fmt(d.dealer-pr.domestic.dealer)}`:`▼${fmt(Math.abs(d.dealer-pr.domestic.dealer))}`):"—",color:pr?(d.dealer-pr.domestic.dealer>=0?C.green:C.red):C.textDim}]
+              ]}/></>}
             </div>
             {imChartData.length>0&&<div style={{height:260}}><ResponsiveContainer>
               <BarChart data={imChartData} margin={{top:5,right:10,bottom:20,left:10}}>
                 <XAxis dataKey="name" tick={{fontSize:9,fill:"#cbd5e1",angle:-15,textAnchor:"end"}} axisLine={false} tickLine={false} interval={0}/>
                 <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
                 <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}개`]}/>
-                <Legend wrapperStyle={{fontSize:10}}/>
-                <Bar dataKey="목표" fill="#475569" opacity={0.4} radius={[3,3,0,0]}/>
                 <Bar dataKey="실적" fill={C.green} radius={[3,3,0,0]}/>
               </BarChart>
             </ResponsiveContainer></div>}
           </div>
         </>);
       })()}
-      <Fn>※ 국내: 직판 = 병원 실사용(개봉) 수량, 대리점 = 유통 판매 수량. 해외: 미국/독일+EMEA/일본 = 현지 법인 인마켓 보고, 기타국가 = 선적(출고) 기준. 영업마케팅본부 주간업무보고 기반 월간 집계. 보고 기준이 법인마다 다를 수 있어 정확도 검증 중.</Fn>
+      <Fn>※ 해외: 미국(LMUS)·독일(LMG)·일본(LMJ) 법인의 현지 판매(인마켓) 실적. 해외사업실 주간 보고 기반. 국내: 영업마케팅본부 데이터 확보 시 반영 예정. 기타국가 대리점 인마켓은 별도 수집 체계 구축 전까지 미표시.</Fn>
     </Card>
 
     {/* ── B2. 손익 ── */}
