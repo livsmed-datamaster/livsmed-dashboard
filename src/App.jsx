@@ -233,10 +233,10 @@ function WeeklyTab({weekKey,WS}){
         const pDOrdW=prevW?.orders?.domestic?.weekly!=null?sumP(prevW.orders.domestic.weekly):null;
         const pOOrdW=prevW?.orders?.overseas?.weekly!=null?sumP(prevW.orders.overseas.weekly):null;
         return[
-          {label:"국내 출하",val:dShipW,prev:pDShipW,color:C.accent},
-          {label:"해외 출하 (선적)",val:oShipW,prev:pOShipW,color:C.green},
-          {label:"국내 수주",val:dOrdW,prev:pDOrdW,color:C.accent},
-          {label:"해외 수주",val:oOrdW,prev:pOOrdW,color:C.green}
+          {label:"🇰🇷 출하",val:dShipW,prev:pDShipW,color:C.accent},
+          {label:"🌏 출하 (선적)",val:oShipW,prev:pOShipW,color:C.green},
+          {label:"🇰🇷 수주",val:dOrdW,prev:pDOrdW,color:C.accent},
+          {label:"🌏 수주",val:oOrdW,prev:pOOrdW,color:C.green}
         ].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}>
           <div style={{fontSize:10,color:C.textDim}}>{c.label}</div>
           <div style={{fontSize:20,fontWeight:700}}>{c.val!=null?fmt(c.val):"—"}<span style={{fontSize:11,color:C.textMuted,marginLeft:3}}>대</span></div>
@@ -312,22 +312,30 @@ function WeeklyTab({weekKey,WS}){
         if(!hasCF)return null;
         const totalIn=(cf.cfInSales||0)+(cf.cfInOther||0);
         const totalOut=(cf.cfOutLabor||0)+(cf.cfOutMaterial||0)+(cf.cfOutOpex||0)+(cf.cfInvest||0);
-        const cfItems=[{name:"매출대금",value:cf.cfInSales||0,color:"#34d399",type:"in"},{name:"기타수입",value:cf.cfInOther||0,color:"#60a5fa",type:"in"},{name:"인건비",value:cf.cfOutLabor||0,color:"#f87171",type:"out"},{name:"원자재",value:cf.cfOutMaterial||0,color:"#fb923c",type:"out"},{name:"운영비",value:cf.cfOutOpex||0,color:"#fbbf24",type:"out"},{name:"투자",value:cf.cfInvest||0,color:"#a78bfa",type:"out"}];
+        // Monthly cumulative
+        const monthWeeks=wKeys.filter(k=>WS[k]?.monthIndex===mi&&k<=weekKey);
+        const cumCF={inSales:0,inOther:0,outLabor:0,outMaterial:0,outOpex:0,invest:0};
+        for(const wk of monthWeeks){const t=WS[wk]?.treasury;if(!t)continue;cumCF.inSales+=(t.cfInSales||0);cumCF.inOther+=(t.cfInOther||0);cumCF.outLabor+=(t.cfOutLabor||0);cumCF.outMaterial+=(t.cfOutMaterial||0);cumCF.outOpex+=(t.cfOutOpex||0);cumCF.invest+=(t.cfInvest||0);}
+        const cumIn=cumCF.inSales+cumCF.inOther;
+        const cumOut=cumCF.outLabor+cumCF.outMaterial+cumCF.outOpex+cumCF.invest;
+        const cfItems=[{name:"매출대금",value:cf.cfInSales||0,cum:cumCF.inSales,color:"#34d399",type:"in"},{name:"기타수입",value:cf.cfInOther||0,cum:cumCF.inOther,color:"#60a5fa",type:"in"},{name:"인건비",value:cf.cfOutLabor||0,cum:cumCF.outLabor,color:"#f87171",type:"out"},{name:"원자재",value:cf.cfOutMaterial||0,cum:cumCF.outMaterial,color:"#fb923c",type:"out"},{name:"운영비",value:cf.cfOutOpex||0,cum:cumCF.outOpex,color:"#fbbf24",type:"out"},{name:"투자",value:cf.cfInvest||0,cum:cumCF.invest,color:"#a78bfa",type:"out"}];
         return(<div style={{marginTop:14}}>
           <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:8}}>💸 주간 입출금 Breakdown</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
             <div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
                 <div style={{padding:"8px 10px",background:"rgba(52,211,153,0.08)",borderRadius:6,textAlign:"center"}}>
-                  <div style={{fontSize:10,color:C.textDim}}>유입 합계</div>
+                  <div style={{fontSize:10,color:C.textDim}}>금주 유입</div>
                   <div style={{fontSize:18,fontWeight:700,color:C.green}}>+{fmt(totalIn)}</div>
+                  <div style={{fontSize:10,color:C.textDim,marginTop:2}}>당월 누적 +{fmt(cumIn)}</div>
                 </div>
                 <div style={{padding:"8px 10px",background:"rgba(248,113,113,0.08)",borderRadius:6,textAlign:"center"}}>
-                  <div style={{fontSize:10,color:C.textDim}}>유출 합계</div>
+                  <div style={{fontSize:10,color:C.textDim}}>금주 유출</div>
                   <div style={{fontSize:18,fontWeight:700,color:C.red}}>△{fmt(totalOut)}</div>
+                  <div style={{fontSize:10,color:C.textDim,marginTop:2}}>당월 누적 △{fmt(cumOut)}</div>
                 </div>
               </div>
-              <DT compact headers={["항목","금액(백만)","구분"]} rows={cfItems.filter(x=>x.value>0).map(x=>[x.name,fmt(x.value),{v:x.type==="in"?"유입":"유출",color:x.type==="in"?C.green:C.red}])}/>
+              <DT compact headers={["항목","금주(백만)","당월누적","구분"]} rows={cfItems.filter(x=>x.value>0||x.cum>0).map(x=>[x.name,fmt(x.value),fmt(x.cum),{v:x.type==="in"?"유입":"유출",color:x.type==="in"?C.green:C.red}])}/>
             </div>
             <div style={{height:180}}><ResponsiveContainer>
               <BarChart data={[{name:"유입",매출대금:cf.cfInSales||0,기타수입:cf.cfInOther||0},{name:"유출",인건비:cf.cfOutLabor||0,원자재:cf.cfOutMaterial||0,운영비:cf.cfOutOpex||0,투자:cf.cfInvest||0}]} barSize={40} margin={{top:5,right:10,bottom:0,left:0}}>
@@ -696,7 +704,7 @@ function MonthlyTab({monthKey,MS,WS}){
           장기연체 = 발행일 9개월 초과 장기 미회수 채권 잔액.<br/>
           두 지표는 산출 기준이 완전히 달라 직접 비교하면 안 됩니다.
         </InfoBox>
-        <Fn>※ 수금률: Monthly Sales Report(영업관리팀) 기준, 당월 매출 대비 당월 수금액 비율. 결제 조건별 시차로 100%와 Gap 발생. 정식 수금이행률(만기 도래 채권 기준)과는 다름. 장기미수: 발행일 9개월 초과 미회수 채권.</Fn>
+        <Fn>※ 수금률: Monthly Sales Report(영업관리팀) 기준, 당월 매출 대비 당월 수금액 비율. 결제 조건별 시차로 100%와 차이 발생. 정식 수금이행률(만기 도래 채권 기준)과는 다름. 장기미수: 발행일 9개월 초과 미회수 채권.</Fn>
       </Card>
       <Card style={{marginBottom:0}}>
         <SH icon="📦" title="B5. 재고" badge={<Badge color="blue">월간</Badge>} desc="국내/해외 법인별 재고 수량. 과다 재고는 자금 묶임, 과소 재고는 출하 지연·백오더 리스크."/>
