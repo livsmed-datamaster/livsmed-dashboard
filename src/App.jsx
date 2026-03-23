@@ -198,13 +198,8 @@ function WeeklyTab({weekKey,WS}){
   const s=W.shipments,o=W.orders,tr=W.treasury;
   const hasShip=s?.domestic?.weekly!=null;const hasOrd=o?.domestic?.weekly!=null;
   const dSM=hasShip?sumP(s.domestic.mtd):0,oSM=hasShip?sumP(s.overseas.mtd):0;
-  const wShipTotal=hasShip?(sumP(s.domestic.weekly)+sumP(s.overseas.weekly)):null;
-  const wOrdTotal=hasOrd?(sumP(o.domestic.weekly)+sumP(o.overseas.weekly)):null;
   const wKeys=Object.keys(WS).sort();const wIdx=wKeys.indexOf(weekKey);
   const prevW=wIdx>0?WS[wKeys[wIdx-1]]:null;
-  const prevShipTotal=prevW?.shipments?.domestic?.weekly!=null?(sumP(prevW.shipments.domestic.weekly)+sumP(prevW.shipments.overseas.weekly)):null;
-  const prevOrdTotal=prevW?.orders?.domestic?.weekly!=null?(sumP(prevW.orders.domestic.weekly)+sumP(prevW.orders.overseas.weekly)):null;
-  const prevNetCash=prevW?.treasury?.netCash??null;
   // Net Cash trend for combo chart
   const cashTrendData=wKeys.slice(Math.max(0,wIdx-5),wIdx+1).map(k=>{const t=WS[k]?.treasury;return{wk:k.replace(/^\d{4}[\.\-]/,""),flow:t?.weeklyFlow||0,netCash:t?.netCash||0};});
   // Monthly cumulative flow (same month's weeklyFlow sum)
@@ -227,15 +222,27 @@ function WeeklyTab({weekKey,WS}){
     </TabIntro>
 
     {/* ── Summary Cards ── */}
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:14}}>
-      {[{label:"Net Cash",val:tr?fmt(tr.netCash):"—",unit:"백만",cur:tr?.netCash,prev:prevNetCash},
-        {label:"금주 출하",val:wShipTotal!=null?fmt(wShipTotal):"—",unit:"대",cur:wShipTotal,prev:prevShipTotal},
-        {label:"금주 수주",val:wOrdTotal!=null?fmt(wOrdTotal):"—",unit:"대",cur:wOrdTotal,prev:prevOrdTotal}
-      ].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 8px"}}>
-        <div style={{fontSize:10,color:C.textDim}}>{c.label}</div>
-        <div style={{fontSize:22,fontWeight:700}}>{c.val}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>{c.unit}</span></div>
-        {c.cur!=null&&c.prev!=null&&<div style={{fontSize:11,color:c.cur>=c.prev?C.green:C.red}}>{c.cur>=c.prev?"▲":"▼"} {fmt(Math.abs(c.cur-c.prev))}</div>}
-      </Card>))}
+    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:14}}>
+      {(()=>{
+        const dShipW=hasShip?sumP(s.domestic.weekly):null;
+        const oShipW=hasShip?sumP(s.overseas.weekly):null;
+        const dOrdW=hasOrd?sumP(o.domestic.weekly):null;
+        const oOrdW=hasOrd?sumP(o.overseas.weekly):null;
+        const pDShipW=prevW?.shipments?.domestic?.weekly!=null?sumP(prevW.shipments.domestic.weekly):null;
+        const pOShipW=prevW?.shipments?.overseas?.weekly!=null?sumP(prevW.shipments.overseas.weekly):null;
+        const pDOrdW=prevW?.orders?.domestic?.weekly!=null?sumP(prevW.orders.domestic.weekly):null;
+        const pOOrdW=prevW?.orders?.overseas?.weekly!=null?sumP(prevW.orders.overseas.weekly):null;
+        return[
+          {label:"🇰🇷 출하",val:dShipW,prev:pDShipW,color:C.accent},
+          {label:"🌏 출하 (선적)",val:oShipW,prev:pOShipW,color:C.green},
+          {label:"🇰🇷 수주",val:dOrdW,prev:pDOrdW,color:C.accent},
+          {label:"🌏 수주",val:oOrdW,prev:pOOrdW,color:C.green}
+        ].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}>
+          <div style={{fontSize:10,color:C.textDim}}>{c.label}</div>
+          <div style={{fontSize:20,fontWeight:700}}>{c.val!=null?fmt(c.val):"—"}<span style={{fontSize:11,color:C.textMuted,marginLeft:3}}>대</span></div>
+          {c.val!=null&&c.prev!=null&&<div style={{fontSize:10,color:c.val>=c.prev?C.green:C.red}}>{c.val>=c.prev?"▲":"▼"} {fmt(Math.abs(c.val-c.prev))} vs 전주</div>}
+        </Card>));
+      })()}
     </div>
 
     {/* ── A1. 자금 현황 ── */}
@@ -256,12 +263,12 @@ function WeeklyTab({weekKey,WS}){
         </div>
       </div>
       {/* 자금 구성 상세 */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:14}}>
-        <Metric label="보통예금" value={fmt(tr.cashBalance)} unit="백만"/>
-        <Metric label="정기예금" value={fmt(tr.deposits)} unit="백만"/>
-        {tr.elb>0&&<Metric label="ELB" value={fmt(tr.elb)} unit="백만"/>}
-        <Metric label="외화 (USD·JPY)" value={fmt(tr.foreignCurrency)} unit="백만"/>
-        <Metric label="차입금 (IBK)" value={fmt(tr.borrowings)} unit="백만" color={C.amber}/>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginBottom:14}}>
+        <Metric label="보통예금 (우리·기업·산업)" value={fmt(tr.cashBalance)} unit="백만"/>
+        <Metric label="정기예금 (우리·기업·산업)" value={fmt(tr.deposits)} unit="백만"/>
+        {tr.elb>0&&<Metric label="ELB (주가연계파생결합사채, 한투 6개월)" value={fmt(tr.elb)} unit="백만"/>}
+        <Metric label="외화 (USD·JPY 보유)" value={fmt(tr.foreignCurrency)} unit="백만"/>
+        <Metric label="차입금 (IBK 기업은행)" value={fmt(tr.borrowings)} unit="백만" color={C.amber}/>
       </div>
       {/* 흐름 지표 — 중앙 정렬 4칸 */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:4}}>
