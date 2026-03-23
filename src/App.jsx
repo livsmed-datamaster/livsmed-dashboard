@@ -233,10 +233,10 @@ function WeeklyTab({weekKey,WS}){
         const pDOrdW=prevW?.orders?.domestic?.weekly!=null?sumP(prevW.orders.domestic.weekly):null;
         const pOOrdW=prevW?.orders?.overseas?.weekly!=null?sumP(prevW.orders.overseas.weekly):null;
         return[
-          {label:"🇰🇷 출하",val:dShipW,prev:pDShipW,color:C.accent},
-          {label:"🌏 출하 (선적)",val:oShipW,prev:pOShipW,color:C.green},
-          {label:"🇰🇷 수주",val:dOrdW,prev:pDOrdW,color:C.accent},
-          {label:"🌏 수주",val:oOrdW,prev:pOOrdW,color:C.green}
+          {label:"국내 출하",val:dShipW,prev:pDShipW,color:C.accent},
+          {label:"해외 출하 (선적)",val:oShipW,prev:pOShipW,color:C.green},
+          {label:"국내 수주",val:dOrdW,prev:pDOrdW,color:C.accent},
+          {label:"해외 수주",val:oOrdW,prev:pOOrdW,color:C.green}
         ].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}>
           <div style={{fontSize:10,color:C.textDim}}>{c.label}</div>
           <div style={{fontSize:20,fontWeight:700}}>{c.val!=null?fmt(c.val):"—"}<span style={{fontSize:11,color:C.textMuted,marginLeft:3}}>대</span></div>
