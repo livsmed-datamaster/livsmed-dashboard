@@ -537,7 +537,7 @@ function MonthlyTab({monthKey,MS,WS}){
         ]}/>
       </div>
       <InfoBox title="📊 금액 달성률과 수량 달성률의 소스 차이" color={C.accent}>
-        금액 실적은 연결 가결산(재무본부), 수량 실적은 Monthly Sales Report 유상 출고(영업관리팀) 기준입니다. 산출 소스가 달라 두 달성률 간 괴리가 발생할 수 있으며, 직접 비교는 참고 수준으로 활용하시기 바랍니다.
+        금액 실적은 연결 가결산(재무본부), 수량 실적은 Monthly Sales Report 유상 출고(영업관리팀) 기준입니다. 산출 소스가 달라 두 달성률 간 차이가 발생할 수 있으며, 직접 비교는 참고 수준으로 활용하시기 바랍니다.
       </InfoBox>
       {M.standalone>0&&<div style={{marginTop:8,padding:"8px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6,fontSize:11,color:C.textMuted}}>
         별도 {fmtBn(M.standalone)} → 연결 {fmtBn(M.consolidated)} (Gap {fmtBn(M.standalone-M.consolidated)}, {((M.standalone-M.consolidated)/M.standalone*100).toFixed(1)}%)
@@ -696,7 +696,7 @@ function MonthlyTab({monthKey,MS,WS}){
           장기연체 = 발행일 9개월 초과 장기 미회수 채권 잔액.<br/>
           두 지표는 산출 기준이 완전히 달라 직접 비교하면 안 됩니다.
         </InfoBox>
-        <Fn>※ 수금률: Monthly Sales Report(영업관리팀) 기준, 당월 매출 대비 당월 수금액 비율. 결제 조건별 시차로 100%와 괴리 발생. 정식 수금이행률(만기 도래 채권 기준)과는 다름. 장기미수: 발행일 9개월 초과 미회수 채권.</Fn>
+        <Fn>※ 수금률: Monthly Sales Report(영업관리팀) 기준, 당월 매출 대비 당월 수금액 비율. 결제 조건별 시차로 100%와 Gap 발생. 정식 수금이행률(만기 도래 채권 기준)과는 다름. 장기미수: 발행일 9개월 초과 미회수 채권.</Fn>
       </Card>
       <Card style={{marginBottom:0}}>
         <SH icon="📦" title="B5. 재고" badge={<Badge color="blue">월간</Badge>} desc="국내/해외 법인별 재고 수량. 과다 재고는 자금 묶임, 과소 재고는 출하 지연·백오더 리스크."/>
