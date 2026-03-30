@@ -177,7 +177,7 @@ function csvToQuarterly(rows){
 // ╔═══════════════════════════╗
 // ║  STYLE + COMPONENTS       ║
 // ╚═══════════════════════════╝
-const C={bg:"#0a0f1a",card:"#111827",border:"#1e293b",text:"#e2e8f0",textMuted:"#94a3b8",textDim:"#64748b",accent:"#3b82f6",green:"#10b981",greenBg:"rgba(16,185,129,0.1)",red:"#ef4444",redBg:"rgba(239,68,68,0.1)",amber:"#f59e0b",amberBg:"rgba(245,158,11,0.1)",purple:"#a78bfa",weekly:"#10b981",monthly:"#3b82f6",quarterly:"#a78bfa"};
+const C={bg:"#0a0f1a",card:"#111827",border:"#1e293b",text:"#e2e8f0",textMuted:"#94a3b8",textDim:"#64748b",accent:"#3b82f6",green:"#10b981",greenBg:"rgba(16,185,129,0.1)",red:"#ef4444",redBg:"rgba(239,68,68,0.1)",amber:"#f59e0b",amberBg:"rgba(245,158,11,0.1)",purple:"#a78bfa",weekly:"#10b981",monthly:"#3b82f6",quarterly:"#a78bfa",up:"#ef4444",down:"#3b82f6"};
 const fmt=n=>n==null?"—":n.toLocaleString();
 const fmtBn=n=>n==null?"—":(n/100).toFixed(1)+"억";
 const pctVal=(a,t)=>t>0?(a/t)*100:0;
@@ -192,7 +192,7 @@ const TabIntro=({color,icon,title,children})=>(<div style={{marginBottom:16,padd
   <div style={{fontSize:13,fontWeight:700,color,marginBottom:6}}>{icon} {title}</div>
   <div style={{fontSize:11,color:C.textMuted}}>{children}</div>
 </div>);
-const Metric=({label,value,sub,trend,unit="",small,color:clr})=>(<div style={{padding:small?"6px 0":"8px 0"}}><div style={{fontSize:11,color:C.textMuted,marginBottom:2}}>{label}</div><div style={{display:"flex",alignItems:"baseline",gap:6}}><span style={{fontSize:small?18:22,fontWeight:700,color:clr||C.text,fontVariantNumeric:"tabular-nums"}}>{value}{unit&&<span style={{fontSize:12,color:C.textMuted,marginLeft:2}}>{unit}</span>}</span>{trend!=null&&<span style={{fontSize:11,fontWeight:600,color:trend>0?C.green:trend<0?C.red:C.textMuted}}>{trend>0?"▲":trend<0?"▼":"—"} {Math.abs(trend).toLocaleString()}{unit}</span>}</div>{sub&&<div style={{fontSize:10,color:C.textDim,marginTop:2}}>{sub}</div>}</div>);
+const Metric=({label,value,sub,trend,unit="",small,color:clr})=>(<div style={{padding:small?"6px 0":"8px 0"}}><div style={{fontSize:11,color:C.textMuted,marginBottom:2}}>{label}</div><div style={{display:"flex",alignItems:"baseline",gap:6}}><span style={{fontSize:small?18:22,fontWeight:700,color:clr||C.text,fontVariantNumeric:"tabular-nums"}}>{value}{unit&&<span style={{fontSize:12,color:C.textMuted,marginLeft:2}}>{unit}</span>}</span>{trend!=null&&<span style={{fontSize:11,fontWeight:600,color:trend>0?C.up:trend<0?C.down:C.textMuted}}>{trend>0?"▲":trend<0?"▼":"—"} {Math.abs(trend).toLocaleString()}{unit}</span>}</div>{sub&&<div style={{fontSize:10,color:C.textDim,marginTop:2}}>{sub}</div>}</div>);
 const ProgressBar=({value,max,label,height=6})=>{const p=max>0?Math.min((value/max)*100,100):0;const bc=p>=90?C.green:p>=70?C.amber:C.red;return(<div>{label&&<div style={{display:"flex",justifyContent:"space-between",fontSize:10,marginBottom:3}}><span style={{color:C.textMuted}}>{label}</span><span style={{color:bc,fontWeight:700}}>{p.toFixed(1)}%</span></div>}<div style={{height,borderRadius:height/2,background:"rgba(255,255,255,0.05)",overflow:"hidden"}}><div style={{height:"100%",width:`${p}%`,borderRadius:height/2,background:bc,transition:"width 0.6s ease"}}/></div></div>);};
 const SH=({icon,title,badge,desc})=>(<div style={{marginBottom:12}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}><span style={{fontSize:16}}>{icon}</span><span style={{fontSize:15,fontWeight:700,color:C.text}}>{title}</span>{badge}</div>{desc&&<div style={{fontSize:11,color:C.textDim,lineHeight:1.5}}>{desc}</div>}</div>);
 const Card=({children,style={}})=>(<div className="lm-card" style={{background:C.card,borderRadius:10,border:`1px solid ${C.border}`,padding:18,marginBottom:14,...style}}>{children}</div>);
@@ -252,8 +252,8 @@ function WeeklyTab({weekKey,WS,isMobile}){
           {label:"해외 수주",val:oOrdW,prev:pOOrdW,color:C.green}
         ].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}>
           <div style={{fontSize:10,color:C.textDim}}>{c.label}</div>
-          <div style={{fontSize:20,fontWeight:700}}>{c.val!=null?fmt(c.val):"—"}<span style={{fontSize:11,color:C.textMuted,marginLeft:3}}>대</span></div>
-          {c.val!=null&&c.prev!=null&&<div style={{fontSize:10,color:c.val>=c.prev?C.green:C.red}}>{c.val>=c.prev?"▲":"▼"} {fmt(Math.abs(c.val-c.prev))} vs 전주</div>}
+          <div style={{fontSize:20,fontWeight:700}}>{c.val!=null?fmt(c.val):"—"}<span style={{fontSize:11,color:C.textMuted,marginLeft:2}}>대</span></div>
+          {c.val!=null&&c.prev!=null&&<div style={{fontSize:10,color:c.val>=c.prev?C.up:C.down}}>{c.val>=c.prev?"▲":"▼"} {fmt(Math.abs(c.val-c.prev))} vs 전주</div>}
         </Card>));
       })()}
     </div>
@@ -265,7 +265,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
           {[["domestic","🇰🇷 국내"],["overseas","🌏 해외 (선적)"]].map(([rk,rl])=>{const w=s[rk].weekly,m=s[rk].mtd,t=rk==="domestic"?dT:oT;return(<div key={rk}>
             <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{rl}</div>
-            <DT compact headers={["품목","금주","월누적","월목표(사업계획)","달성률"]} rows={[
+            <DT compact headers={["품목","금주(대)","월누적(대)","월목표(대)","달성률"]} rows={[
               shipRow("ArtiSential",w.ArtiSential,m.ArtiSential,Targets.qty[rk].ArtiSential[mi]),
               shipRow("ArtiSeal",w.ArtiSeal,m.ArtiSeal,Targets.qty[rk].ArtiSeal[mi]),
               [{v:"합계",bold:true},{v:fmt(sumP(w)),bold:true},{v:fmt(sumP(m)),bold:true},{v:fmt(t),bold:true},{v:pctStr(sumP(m),t),color:pctClr(sumP(m),t),bold:true}]
@@ -331,7 +331,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
           {[["domestic","🇰🇷 국내"],["overseas","🌏 해외"]].map(([rk,rl])=>{const w=o[rk].weekly,m=o[rk].mtd,t=getTT(rk,mi);return(<div key={rk}>
             <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{rl}</div>
-            <DT compact headers={["품목","금주","월누적","월목표(사업계획)","달성률"]} rows={[
+            <DT compact headers={["품목","금주(대)","월누적(대)","월목표(대)","달성률"]} rows={[
               shipRow("ArtiSential",w.ArtiSential,m.ArtiSential,Targets.qty[rk].ArtiSential[mi]),
               shipRow("ArtiSeal",w.ArtiSeal,m.ArtiSeal,Targets.qty[rk].ArtiSeal[mi]),
               [{v:"합계",bold:true},{v:fmt(sumP(w)),bold:true},{v:fmt(sumP(m)),bold:true},{v:fmt(t),bold:true},{v:pctStr(sumP(m),t),color:pctClr(sumP(m),t),bold:true}]
@@ -375,29 +375,29 @@ function WeeklyTab({weekKey,WS,isMobile}){
         <div style={{textAlign:"center",padding:isMobile?12:14,background:"rgba(255,255,255,0.02)",borderRadius:8,border:`1px solid ${C.border}`}}>
           <div style={{fontSize:10,color:C.textDim}}>Gross Cash (총잔고)</div>
           <div style={{fontSize:isMobile?24:28,fontWeight:700,color:C.accent}}>{fmt(Math.round((tr.cashBalance+tr.deposits+(tr.elb||0)+tr.foreignCurrency)/100))}<span style={{fontSize:13,color:C.textMuted,marginLeft:2}}>억</span></div>
-          <div style={{fontSize:11,color:C.textMuted,marginTop:2}}>{fmt(tr.cashBalance+tr.deposits+(tr.elb||0)+tr.foreignCurrency)} 백만</div>
+          <div style={{fontSize:11,color:C.textMuted,marginTop:2}}>{fmt(tr.cashBalance+tr.deposits+(tr.elb||0)+tr.foreignCurrency)} 백만원</div>
           <div style={{fontSize:9,color:C.textDim,marginTop:3}}>보통예금+정기예금+ELB+외화</div>
         </div>
         <div style={{textAlign:"center",padding:isMobile?12:14,background:"rgba(255,255,255,0.02)",borderRadius:8,border:`1px solid ${C.border}`}}>
           <div style={{fontSize:10,color:C.textDim}}>Net Cash (순현금)</div>
           <div style={{fontSize:isMobile?24:28,fontWeight:700,color:tr.netCash>100000?C.green:C.amber}}>{fmt(Math.round(tr.netCash/100))}<span style={{fontSize:13,color:C.textMuted,marginLeft:2}}>억</span></div>
-          <div style={{fontSize:11,color:C.textMuted,marginTop:2}}>{fmt(tr.netCash)} 백만</div>
+          <div style={{fontSize:11,color:C.textMuted,marginTop:2}}>{fmt(tr.netCash)} 백만원</div>
           <div style={{fontSize:9,color:C.textDim,marginTop:3}}>총잔고 − 차입금({fmt(tr.borrowings)})</div>
         </div>
       </div>
       {/* 자금 구성 상세 */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginBottom:14}}>
-        <Metric label="보통예금 (우리·기업·산업)" value={fmt(tr.cashBalance)} unit="백만"/>
-        <Metric label="정기예금 (우리·기업·산업)" value={fmt(tr.deposits)} unit="백만"/>
-        {tr.elb>0&&<Metric label="ELB (주가연계파생결합사채, 한투 6개월)" value={fmt(tr.elb)} unit="백만"/>}
-        <Metric label="외화 (USD·JPY 보유)" value={fmt(tr.foreignCurrency)} unit="백만"/>
-        <Metric label="차입금 (IBK 기업은행)" value={fmt(tr.borrowings)} unit="백만" color={C.amber}/>
+        <Metric label="보통예금 (우리·기업·산업)" value={fmt(tr.cashBalance)} unit="백만원"/>
+        <Metric label="정기예금 (우리·기업·산업)" value={fmt(tr.deposits)} unit="백만원"/>
+        {tr.elb>0&&<Metric label="ELB (주가연계파생결합사채, 한투 6개월)" value={fmt(tr.elb)} unit="백만원"/>}
+        <Metric label="외화 (USD·JPY 보유)" value={fmt(tr.foreignCurrency)} unit="백만원"/>
+        <Metric label="차입금 (IBK 기업은행)" value={fmt(tr.borrowings)} unit="백만원" color={C.amber}/>
       </div>
       {/* 흐름 지표 — 중앙 정렬 4칸 */}
       <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:isMobile?8:10,marginBottom:4}}>
-        {[{l:"금주 흐름",v:fmt(tr.weeklyFlow),u:"백만",c:tr.weeklyFlow>=0?C.green:C.red},
-          {l:"당월 누적 흐름",v:fmt(monthCumFlow),u:"백만",c:monthCumFlow>=0?C.green:C.red},
-          {l:"월평균 Burn Rate",v:monthlyBurnRate!=null?`△${fmt(Math.abs(monthlyBurnRate))}`:"—",u:"백만/월",c:C.amber},
+        {[{l:"금주 흐름",v:fmt(tr.weeklyFlow),u:"백만원",c:tr.weeklyFlow>=0?C.up:C.down},
+          {l:"당월 누적 흐름",v:fmt(monthCumFlow),u:"백만원",c:monthCumFlow>=0?C.up:C.down},
+          {l:"월평균 Burn Rate",v:monthlyBurnRate!=null?`△${fmt(Math.abs(monthlyBurnRate))}`:"—",u:"백만원/월",c:C.amber},
           {l:"Runway",v:tr.runway,u:"개월",c:C.text}
         ].map((x,i)=>(<div key={i} style={{textAlign:"center",padding:"10px 6px",background:"rgba(255,255,255,0.02)",borderRadius:6}}>
           <div style={{fontSize:10,color:C.textDim,marginBottom:2}}>{x.l}</div>
@@ -411,7 +411,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
             <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
             <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
             <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} domain={["dataMin-2000","dataMax+2000"]}/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만`,"Net Cash"]}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만원`,"Net Cash"]}/>
             <Line type="monotone" dataKey="netCash" stroke="#60a5fa" strokeWidth={2} dot={{r:3,fill:"#60a5fa"}}/>
           </LineChart>
         </ResponsiveContainer></div>
@@ -424,7 +424,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
             <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
             <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
             <ReferenceLine y={0} stroke={C.textDim} strokeDasharray="3 3"/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>{if(n==="유입")return v>0?[`+${fmt(v)}백만`,"유입"]:[null,null];if(n==="유출")return v<0?[`${fmt(v)}백만`,"유출"]:[null,null];return[`${fmt(v)}백만`,n];}} itemSorter={()=>0}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>{if(n==="유입")return v>0?[`+${fmt(v)}백만원`,"유입"]:[null,null];if(n==="유출")return v<0?[`${fmt(v)}백만원`,"유출"]:[null,null];return[`${fmt(v)}백만원`,n];}} itemSorter={()=>0}/>
             <Area type="monotone" dataKey="flowPos" stroke="#34d399" fill="#34d399" fillOpacity={0.35} strokeWidth={2} name="유입" dot={{r:3,fill:"#34d399"}}/>
             <Area type="monotone" dataKey="flowNeg" stroke="#f87171" fill="#f87171" fillOpacity={0.35} strokeWidth={2} name="유출" dot={{r:3,fill:"#f87171"}}/>
           </AreaChart>
@@ -447,24 +447,24 @@ function WeeklyTab({weekKey,WS,isMobile}){
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
             <div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-                <div style={{padding:"8px 10px",background:"rgba(52,211,153,0.08)",borderRadius:6,textAlign:"center"}}>
+                <div style={{padding:"8px 10px",background:"rgba(239,68,68,0.08)",borderRadius:6,textAlign:"center"}}>
                   <div style={{fontSize:10,color:C.textDim}}>금주 유입</div>
-                  <div style={{fontSize:18,fontWeight:700,color:C.green}}>+{fmt(totalIn)}</div>
+                  <div style={{fontSize:18,fontWeight:700,color:C.up}}>+{fmt(totalIn)}<span style={{fontSize:10,color:C.textDim,marginLeft:2}}>백만원</span></div>
                   <div style={{fontSize:10,color:C.textDim,marginTop:2}}>당월 누적 +{fmt(cumIn)}</div>
                 </div>
-                <div style={{padding:"8px 10px",background:"rgba(248,113,113,0.08)",borderRadius:6,textAlign:"center"}}>
+                <div style={{padding:"8px 10px",background:"rgba(59,130,246,0.08)",borderRadius:6,textAlign:"center"}}>
                   <div style={{fontSize:10,color:C.textDim}}>금주 유출</div>
-                  <div style={{fontSize:18,fontWeight:700,color:C.red}}>△{fmt(totalOut)}</div>
+                  <div style={{fontSize:18,fontWeight:700,color:C.down}}>△{fmt(totalOut)}<span style={{fontSize:10,color:C.textDim,marginLeft:2}}>백만원</span></div>
                   <div style={{fontSize:10,color:C.textDim,marginTop:2}}>당월 누적 △{fmt(cumOut)}</div>
                 </div>
               </div>
-              <DT compact headers={["항목","금주(백만)","당월누적","구분"]} rows={cfItems.filter(x=>x.value>0||x.cum>0).map(x=>[x.name,fmt(x.value),fmt(x.cum),{v:x.type==="in"?"유입":"유출",color:x.type==="in"?C.green:C.red}])}/>
+              <DT compact headers={["항목","금주(백만원)","당월누적(백만원)","구분"]} rows={cfItems.filter(x=>x.value>0||x.cum>0).map(x=>[x.name,fmt(x.value),fmt(x.cum),{v:x.type==="in"?"유입":"유출",color:x.type==="in"?C.up:C.down}])}/>
             </div>
             <div style={{height:180}}><ResponsiveContainer>
               <BarChart data={[{name:"유입",매출대금:cf.cfInSales||0,기타수입:cf.cfInOther||0},{name:"유출",인건비:cf.cfOutLabor||0,원자재:cf.cfOutMaterial||0,운영비:cf.cfOutOpex||0,투자:cf.cfInvest||0}]} barSize={40} margin={{top:5,right:10,bottom:0,left:0}}>
                 <XAxis dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-                <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>v>0?[`${fmt(v)}백만`,n]:[null,null]}/>
+                <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>v>0?[`${fmt(v)}백만원`,n]:[null,null]}/>
                 <Legend wrapperStyle={{fontSize:9}}/>
                 <Bar dataKey="매출대금" stackId="a" fill="#34d399"/>
                 <Bar dataKey="기타수입" stackId="a" fill="#60a5fa" radius={[3,3,0,0]}/>
@@ -572,7 +572,7 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
     <Card>
       <SH icon="🗺️" title="B1-2. 지역별 매출 Breakdown" badge={<Badge color="blue">월간 가결산</Badge>} desc="연결 가결산 상세 시트 기준 지역별 매출 분해. 매출이 어느 시장에 집중되고 어디가 부진한지를 조기 식별하기 위한 지표입니다. 달성률이 80% 미만인 지역은 하단에 자동으로 경고가 표시됩니다."/>
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
-        <DT headers={["지역","실적(백만)","목표(백만)","달성률","비중"]} rows={
+        <DT headers={["지역","실적(백만원)","목표(백만원)","달성률","비중"]} rows={
           regData.map(r=>{const share=regTotal>0?((r.val/regTotal)*100).toFixed(1)+"%":"—";
             return[r.name,fmt(r.val),r.target>0?fmt(r.target):"—",{v:r.target>0?pctStr(r.val,r.target):"—",color:r.target>0?pctClr(r.val,r.target):C.textMuted},{v:share,color:C.textMuted}];
           }).concat([[{v:"합계",bold:true},{v:fmt(regTotal),bold:true},{v:fmt(regData.reduce((s,r)=>s+(r.target||0),0)),bold:true},"—","100%"]])
@@ -581,7 +581,7 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
           <BarChart data={regData.map(r=>({name:r.name.replace(/[^\w가-힣\s]/g,"").trim(),실적:r.val,목표:r.target||0}))} margin={{top:5,right:10,bottom:20,left:10}}>
             <XAxis dataKey="name" tick={{fontSize:9,fill:"#cbd5e1",angle:-15,textAnchor:"end"}} axisLine={false} tickLine={false} interval={0}/>
             <YAxis tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}백만`,n]}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}백만원`,n]}/>
             <Legend wrapperStyle={{fontSize:10}}/>
             <Bar dataKey="목표" fill="#475569" opacity={0.4} radius={[3,3,0,0]}/>
             <Bar dataKey="실적" radius={[3,3,0,0]}>
@@ -603,7 +603,7 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
         const im=M.inmarket;
         if(!im)return<NoData msg="인마켓 데이터 미입력 (Monthly_Inmarket 시트 확인)"/>;
         const d=im.domestic,ov=im.overseas,pr=im.prev;
-        const deltaStr=(cur,prev)=>{if(prev==null||prev===undefined)return"";const diff=cur-prev;if(diff===0)return<span style={{fontSize:10,color:C.textDim}}>→</span>;return<span style={{fontSize:10,color:diff>0?C.green:C.red}}>{diff>0?`▲${fmt(diff)}`:`▼${fmt(Math.abs(diff))}`}</span>;};
+        const deltaStr=(cur,prev)=>{if(prev==null||prev===undefined)return"";const diff=cur-prev;if(diff===0)return<span style={{fontSize:10,color:C.textDim}}>→</span>;return<span style={{fontSize:10,color:diff>0?C.up:C.down}}>{diff>0?`▲${fmt(diff)}`:`▼${fmt(Math.abs(diff))}`}</span>;};
         const ovsEntries=[{name:"🇺🇸 미국",val:ov.us,prev:pr?.overseas?.us},{name:"🇩🇪 독일",val:ov.de,prev:pr?.overseas?.de},{name:"🇯🇵 일본",val:ov.jp,prev:pr?.overseas?.jp}];
         const imChartData=[{name:"직판",실적:d.direct},{name:"대리점",실적:d.dealer},...ovsEntries.map(e=>({name:e.name.replace(/[^\w가-힣+\s]/g,"").trim(),실적:e.val}))].filter(x=>x.실적>0);
         return(<>
@@ -627,14 +627,14 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🌏 해외 법인 상세</div>
-              <DT compact headers={["법인","실적(개)","전월비"]} rows={
-                ovsEntries.map(e=>[e.name,fmt(e.val),{v:e.prev!=null?(e.val-e.prev>=0?`▲${fmt(e.val-e.prev)}`:`▼${fmt(Math.abs(e.val-e.prev))}`):"—",color:e.prev!=null?(e.val-e.prev>=0?C.green:C.red):C.textDim}])
-                .concat([[{v:"합계",bold:true},{v:fmt(im.ovsTotal),bold:true},{v:pr?(im.ovsTotal-pr.ovsTotal>=0?`▲${fmt(im.ovsTotal-pr.ovsTotal)}`:`▼${fmt(Math.abs(im.ovsTotal-pr.ovsTotal))}`):"—",color:pr?(im.ovsTotal-pr.ovsTotal>=0?C.green:C.red):C.textDim,bold:true}]])
+              <DT compact headers={["법인","실적(대)","전월비"]} rows={
+                ovsEntries.map(e=>[e.name,fmt(e.val),{v:e.prev!=null?(e.val-e.prev>=0?`▲${fmt(e.val-e.prev)}`:`▼${fmt(Math.abs(e.val-e.prev))}`):"—",color:e.prev!=null?(e.val-e.prev>=0?C.up:C.down):C.textDim}])
+                .concat([[{v:"합계",bold:true},{v:fmt(im.ovsTotal),bold:true},{v:pr?(im.ovsTotal-pr.ovsTotal>=0?`▲${fmt(im.ovsTotal-pr.ovsTotal)}`:`▼${fmt(Math.abs(im.ovsTotal-pr.ovsTotal))}`):"—",color:pr?(im.ovsTotal-pr.ovsTotal>=0?C.up:C.down):C.textDim,bold:true}]])
               }/>
               {im.domTotal>0&&<><div style={{marginTop:8,fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🇰🇷 국내 상세</div>
-              <DT compact headers={["채널","실적(개)","전월비"]} rows={[
-                ["직판",fmt(d.direct),{v:pr?(d.direct-pr.domestic.direct>=0?`▲${fmt(d.direct-pr.domestic.direct)}`:`▼${fmt(Math.abs(d.direct-pr.domestic.direct))}`):"—",color:pr?(d.direct-pr.domestic.direct>=0?C.green:C.red):C.textDim}],
-                ["대리점",fmt(d.dealer),{v:pr?(d.dealer-pr.domestic.dealer>=0?`▲${fmt(d.dealer-pr.domestic.dealer)}`:`▼${fmt(Math.abs(d.dealer-pr.domestic.dealer))}`):"—",color:pr?(d.dealer-pr.domestic.dealer>=0?C.green:C.red):C.textDim}]
+              <DT compact headers={["채널","실적(대)","전월비"]} rows={[
+                ["직판",fmt(d.direct),{v:pr?(d.direct-pr.domestic.direct>=0?`▲${fmt(d.direct-pr.domestic.direct)}`:`▼${fmt(Math.abs(d.direct-pr.domestic.direct))}`):"—",color:pr?(d.direct-pr.domestic.direct>=0?C.up:C.down):C.textDim}],
+                ["대리점",fmt(d.dealer),{v:pr?(d.dealer-pr.domestic.dealer>=0?`▲${fmt(d.dealer-pr.domestic.dealer)}`:`▼${fmt(Math.abs(d.dealer-pr.domestic.dealer))}`):"—",color:pr?(d.dealer-pr.domestic.dealer>=0?C.up:C.down):C.textDim}]
               ]}/></>}
             </div>
             {imChartData.length>0&&<div style={{height:260}}><ResponsiveContainer>
@@ -655,29 +655,29 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
     <Card><SH icon="📈" title="B2. 손익 (P&L)" badge={<Badge color="blue">월간</Badge>} desc="가결산 기준 당월 손익계산서 요약. 매출총이익률로 원가 구조를, 영업손실로 본업 수익성을, EBITDA로 감가상각 전 현금창출력을 판단합니다. 주의: 매출은 마감 확정이나 비용은 추정 배부이므로, 확정 수치는 분기 결산 후에 반영됩니다."/>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:14}}>
         {[{l:"매출총이익률",v:`${pl.grossMarginPct}%`,c:C.green},
-          {l:"영업손실",v:`△${fmt(Math.abs(pl.opLoss.actual))}`,c:C.red,sub:opProfit?`계획+${fmt(pl.opLoss.plan)}`:`계획△${fmt(Math.abs(pl.opLoss.plan))}`},
-          {l:"EBITDA",v:pl.ebitda.actual<0?`△${fmt(Math.abs(pl.ebitda.actual))}`:`${fmt(pl.ebitda.actual)}`,c:pl.ebitda.actual<0?C.red:C.green},
-          {l:"당기순손실",v:`△${fmt(Math.abs(pl.netLoss.actual))}`,c:C.red}
+          {l:"영업손실",v:`△${fmt(Math.abs(pl.opLoss.actual))}백만원`,c:C.down,sub:opProfit?`계획+${fmt(pl.opLoss.plan)}`:`계획△${fmt(Math.abs(pl.opLoss.plan))}`},
+          {l:"EBITDA",v:pl.ebitda.actual<0?`△${fmt(Math.abs(pl.ebitda.actual))}백만원`:`${fmt(pl.ebitda.actual)}백만원`,c:pl.ebitda.actual<0?C.down:C.up},
+          {l:"당기순손실",v:`△${fmt(Math.abs(pl.netLoss.actual))}백만원`,c:C.down}
         ].map((x,i)=>(<div key={i} style={{padding:10,background:"rgba(255,255,255,0.02)",borderRadius:6,textAlign:"center"}}>
           <div style={{fontSize:10,color:C.textDim}}>{x.l}</div>
           <div style={{fontSize:22,fontWeight:700,color:x.c}}>{x.v}</div>
           {x.sub&&<div style={{fontSize:10,color:C.textDim}}>{x.sub}</div>}
         </div>))}
       </div>
-      {opProfit&&<InfoBox title="⚠️ GAP" color={C.red}>계획 +{fmt(pl.opLoss.plan)}백만 vs 실적 △{fmt(Math.abs(pl.opLoss.actual))}백만. {fmt(Math.abs(pl.opLoss.actual)+pl.opLoss.plan)}백만 미달.</InfoBox>}
+      {opProfit&&<InfoBox title="⚠️ GAP" color={C.red}>계획 +{fmt(pl.opLoss.plan)}백만원 vs 실적 △{fmt(Math.abs(pl.opLoss.actual))}백만원. {fmt(Math.abs(pl.opLoss.actual)+pl.opLoss.plan)}백만원 미달.</InfoBox>}
       <Fn>※ 가결산 추정치. 매출은 월마감 확정이나, 비용(인건비·R&D·판관비)은 연간 예산의 월별 추정 배부. 확정 수치는 분기 결산 후 반영. 영업손실 계획이 흑자(+)인 월에 적자 실적이 나오면 GAP을 강조 표시.</Fn>
     </Card>
 
     {/* ── B3. 비용 구조 ── */}
     <Card><SH icon="💸" title="B3. 비용 구조" badge={<Badge color="blue">월간</Badge>} desc="판관비를 5대 비용군으로 재분류하여 비용이 어디에 집중되는지를 파악합니다."/>
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
-        <DT headers={["비용군","집행액(백만)","비중"]} rows={activeCosts.map(g=>{const share=tCA>0?((g.actual/tCA)*100).toFixed(1)+"%":"—";return[g.name,fmt(g.actual),{v:share,color:C.textMuted}];}).concat([[{v:"합계",bold:true},{v:fmt(tCA),bold:true},{v:"100%",bold:true}]])}/>
+        <DT headers={["비용군","집행액(백만원)","비중"]} rows={activeCosts.map(g=>{const share=tCA>0?((g.actual/tCA)*100).toFixed(1)+"%":"—";return[g.name,fmt(g.actual),{v:share,color:C.textMuted}];}).concat([[{v:"합계",bold:true},{v:fmt(tCA),bold:true},{v:"100%",bold:true}]])}/>
         <div style={{height:220}}><ResponsiveContainer>
           <BarChart data={activeCosts} layout="vertical" margin={{left:65,right:10,top:5,bottom:5}}>
             <XAxis type="number" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false}/>
             <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
             <Bar dataKey="actual" fill={C.accent} radius={[0,3,3,0]} opacity={0.8}/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만`,"집행액"]}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만원`,"집행액"]}/>
           </BarChart>
         </ResponsiveContainer></div>
       </div>
@@ -690,7 +690,7 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
         <SH icon="💳" title="B4. 매출채권" badge={<Badge color="blue">월간</Badge>} desc="수금률과 장기 연체채권 현황. 매출이 발생해도 대금을 회수하지 못하면 현금흐름에 직접적 부담. 수금률 하락 또는 장기미수 증가는 거래처 신용 리스크 신호입니다."/>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
           <Metric label="수금률" value={M.ar.collectionRate} unit="%" small/>
-          <Metric label="장기미수 (9개월↑)" value={fmt(M.ar.longOverdue)} unit="백만" color={C.red} small/>
+          <Metric label="장기미수 (9개월↑)" value={fmt(M.ar.longOverdue)} unit="백만원" color={C.red} small/>
         </div>
         {M.ar.detail&&<div style={{fontSize:10,color:C.textDim,marginTop:4,lineHeight:1.5}}>{M.ar.detail}</div>}
         {M.arTrend?.length>1&&<div style={{marginTop:8,display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:10}}>
@@ -704,11 +704,11 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
             </LineChart></ResponsiveContainer></div>
           </div>
           <div>
-            <div style={{fontSize:10,color:C.textDim,marginBottom:4}}>장기연체 잔액 (백만)</div>
+            <div style={{fontSize:10,color:C.textDim,marginBottom:4}}>장기연체 잔액 (백만원)</div>
             <div style={{height:110}}><ResponsiveContainer><BarChart data={M.arTrend} barSize={14} margin={{top:2,right:5,bottom:0,left:-20}}>
               <XAxis dataKey="m" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:10,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만`,"연체잔액"]}/>
+              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:10,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만원`,"연체잔액"]}/>
               <Bar dataKey="overdue" fill={C.red} opacity={0.5} radius={[2,2,0,0]}/>
             </BarChart></ResponsiveContainer></div>
           </div>
@@ -783,7 +783,7 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
           <div style={{padding:14,background:`${sevC}08`,borderRadius:8,border:`1px solid ${sevC}22`,textAlign:"center"}}>
             <div style={{fontSize:10,color:C.textDim,marginBottom:2}}>통합 백오더</div>
             <div style={{fontSize:28,fontWeight:700,color:sevC}}>{fmt(total)}<span style={{fontSize:12,color:C.textMuted,marginLeft:2}}>대</span></div>
-            {delta!==0&&<div style={{fontSize:11,fontWeight:600,color:delta>0?C.red:C.green,marginTop:4}}>{delta>0?"▲":"▼"} {fmt(Math.abs(delta))}대 vs 전기</div>}
+            {delta!==0&&<div style={{fontSize:11,fontWeight:600,color:delta>0?C.up:C.down,marginTop:4}}>{delta>0?"▲":"▼"} {fmt(Math.abs(delta))}대 vs 전기</div>}
             {delta===0&&prevTotal>0&&<div style={{fontSize:11,color:C.textMuted,marginTop:4}}>— 전기와 동일</div>}
             <div style={{marginTop:6,fontSize:11,fontWeight:700,color:sevC}}>{sevL}</div>
           </div>
@@ -872,9 +872,9 @@ function QuarterlyTab({qKey,QS,isMobile}){
         const entityColors=[C.red,C.green,C.amber];
         const entityChartData=Q.entities.map((e,i)=>({name:e.name.replace(/\s*\(.*\)/,""),실적:entityActuals[i],목표:isFY26?entityTargets[i]:null}));
         return(<>
-          <DT headers={["법인","매출","목표(분기)","GP","판관비","영업손실","비중"]} rows={Q.entities.map((e,i)=>{
+          <DT headers={["법인","매출(억원)","목표(억원)","GP(억원)","판관비(억원)","영업손실(억원)","비중"]} rows={Q.entities.map((e,i)=>{
             const tgt=isFY26&&entityTargets[i]>0?entityTargets[i].toFixed(1)+"억":"—";
-            return[e.name,e.rev,{v:tgt,color:C.textDim},e.gp,e.sga,{v:e.opLoss,color:C.red},{v:e.share,color:i===0?C.red:C.amber,bold:true}];
+            return[e.name,e.rev,{v:tgt,color:C.textDim},e.gp,e.sga,{v:e.opLoss,color:C.down},{v:e.share,color:i===0?C.red:C.amber,bold:true}];
           })}/>
           {isFY26&&entityChartData.some(d=>d.실적>0||d.목표>0)&&<div style={{marginTop:12}}>
             <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📊 법인별 목표 vs 실적 (억원)</div>
@@ -962,7 +962,7 @@ function QuarterlyTab({qKey,QS,isMobile}){
           {c4Data.filter(d=>d.순유출!=null).length>0&&<div style={{marginTop:6,display:"flex",gap:16,flexWrap:"wrap"}}>
             {c4Data.filter(d=>d.순유출!=null).slice(-2).map((d,i)=>(
               <div key={i} style={{fontSize:11,color:C.textMuted}}>
-                {d.q}: 순유출 <span style={{fontWeight:700,color:C.red}}>△{d.순유출}억</span>
+                {d.q}: 순유출 <span style={{fontWeight:700,color:C.down}}>△{d.순유출}억</span>
                 {d.매출!=null&&<span style={{marginLeft:8}}>매출 <span style={{fontWeight:700,color:C.accent}}>{d.매출}억</span></span>}
               </div>
             ))}
