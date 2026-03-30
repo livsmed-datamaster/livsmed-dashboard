@@ -1,6 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend, Cell, ComposedChart, AreaChart, Area, ReferenceLine } from "recharts";
 import Papa from "papaparse";
+
+// ── Mobile Detection Hook ──
+function useIsMobile(breakpoint=768){
+  const [isMobile,setIsMobile]=useState(()=>typeof window!=="undefined"&&window.innerWidth<breakpoint);
+  useEffect(()=>{
+    const mq=window.matchMedia(`(max-width:${breakpoint-1}px)`);
+    const handler=e=>setIsMobile(e.matches);
+    mq.addEventListener("change",handler);
+    setIsMobile(mq.matches);
+    return()=>mq.removeEventListener("change",handler);
+  },[breakpoint]);
+  return isMobile;
+}
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
 // ║  LIVSMED Executive Dashboard v4.9 — Google Sheets Integration           ║
@@ -182,17 +195,17 @@ const TabIntro=({color,icon,title,children})=>(<div style={{marginBottom:16,padd
 const Metric=({label,value,sub,trend,unit="",small,color:clr})=>(<div style={{padding:small?"6px 0":"8px 0"}}><div style={{fontSize:11,color:C.textMuted,marginBottom:2}}>{label}</div><div style={{display:"flex",alignItems:"baseline",gap:6}}><span style={{fontSize:small?18:22,fontWeight:700,color:clr||C.text,fontVariantNumeric:"tabular-nums"}}>{value}{unit&&<span style={{fontSize:12,color:C.textMuted,marginLeft:2}}>{unit}</span>}</span>{trend!=null&&<span style={{fontSize:11,fontWeight:600,color:trend>0?C.green:trend<0?C.red:C.textMuted}}>{trend>0?"▲":trend<0?"▼":"—"} {Math.abs(trend).toLocaleString()}{unit}</span>}</div>{sub&&<div style={{fontSize:10,color:C.textDim,marginTop:2}}>{sub}</div>}</div>);
 const ProgressBar=({value,max,label,height=6})=>{const p=max>0?Math.min((value/max)*100,100):0;const bc=p>=90?C.green:p>=70?C.amber:C.red;return(<div>{label&&<div style={{display:"flex",justifyContent:"space-between",fontSize:10,marginBottom:3}}><span style={{color:C.textMuted}}>{label}</span><span style={{color:bc,fontWeight:700}}>{p.toFixed(1)}%</span></div>}<div style={{height,borderRadius:height/2,background:"rgba(255,255,255,0.05)",overflow:"hidden"}}><div style={{height:"100%",width:`${p}%`,borderRadius:height/2,background:bc,transition:"width 0.6s ease"}}/></div></div>);};
 const SH=({icon,title,badge,desc})=>(<div style={{marginBottom:12}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}><span style={{fontSize:16}}>{icon}</span><span style={{fontSize:15,fontWeight:700,color:C.text}}>{title}</span>{badge}</div>{desc&&<div style={{fontSize:11,color:C.textDim,lineHeight:1.5}}>{desc}</div>}</div>);
-const Card=({children,style={}})=>(<div style={{background:C.card,borderRadius:10,border:`1px solid ${C.border}`,padding:18,marginBottom:14,...style}}>{children}</div>);
+const Card=({children,style={}})=>(<div className="lm-card" style={{background:C.card,borderRadius:10,border:`1px solid ${C.border}`,padding:18,marginBottom:14,...style}}>{children}</div>);
 const NoData=({msg="데이터 미수신"})=>(<div style={{padding:"16px 14px",background:C.amberBg,borderRadius:6,border:`1px solid ${C.amber}33`,fontSize:11,color:C.amber,textAlign:"center"}}>⏳ {msg}</div>);
 const DT=({headers,rows,compact})=>(<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:compact?11:12}}><thead><tr>{headers.map((h,i)=>(<th key={i} style={{padding:compact?"5px 6px":"6px 8px",textAlign:i===0?"left":"right",fontSize:10,fontWeight:600,color:C.textDim,borderBottom:`1px solid ${C.border}`,textTransform:"uppercase",letterSpacing:"0.04em",whiteSpace:"nowrap"}}>{h}</th>))}</tr></thead><tbody>{rows.map((row,ri)=>(<tr key={ri} style={{borderBottom:`1px solid ${C.border}22`}}>{row.map((cell,ci)=>(<td key={ci} style={{padding:compact?"5px 6px":"7px 8px",textAlign:ci===0?"left":"right",color:typeof cell==="object"?cell.color||C.text:C.text,fontWeight:typeof cell==="object"?cell.bold?700:400:400,fontVariantNumeric:"tabular-nums",whiteSpace:"nowrap"}}>{typeof cell==="object"?cell.v:cell}</td>))}</tr>))}</tbody></table></div>);
-const PeriodNav=({keys,current,onChange,colorActive,labels})=>(<div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}><button onClick={()=>{const i=keys.indexOf(current);if(i>0)onChange(keys[i-1]);}} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${C.border}`,background:"transparent",color:C.textMuted,cursor:"pointer",fontSize:12}}>◀</button><div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{keys.map(k=>(<button key={k} onClick={()=>onChange(k)} style={{padding:"5px 12px",borderRadius:6,fontSize:11,fontWeight:600,border:"none",cursor:"pointer",transition:"all 0.2s",background:k===current?colorActive:"rgba(255,255,255,0.04)",color:k===current?"#fff":C.textMuted}}>{labels&&labels[k]?labels[k]:k}</button>))}</div><button onClick={()=>{const i=keys.indexOf(current);if(i<keys.length-1)onChange(keys[i+1]);}} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${C.border}`,background:"transparent",color:C.textMuted,cursor:"pointer",fontSize:12}}>▶</button></div>);
+const PeriodNav=({keys,current,onChange,colorActive,labels,isMobile})=>(<div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}><button onClick={()=>{const i=keys.indexOf(current);if(i>0)onChange(keys[i-1]);}} style={{padding:isMobile?"6px 10px":"4px 10px",borderRadius:6,border:`1px solid ${C.border}`,background:"transparent",color:C.textMuted,cursor:"pointer",fontSize:12,flexShrink:0}}>◀</button><div style={{display:"flex",gap:4,flexWrap:isMobile?"nowrap":"wrap",overflowX:isMobile?"auto":"visible",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",msOverflowStyle:"none",flex:1}}>{keys.map(k=>(<button key={k} onClick={()=>onChange(k)} style={{padding:isMobile?"7px 12px":"5px 12px",borderRadius:6,fontSize:11,fontWeight:600,border:"none",cursor:"pointer",transition:"all 0.2s",background:k===current?colorActive:"rgba(255,255,255,0.04)",color:k===current?"#fff":C.textMuted,whiteSpace:"nowrap",flexShrink:0}}>{labels&&labels[k]?labels[k]:k}</button>))}</div><button onClick={()=>{const i=keys.indexOf(current);if(i<keys.length-1)onChange(keys[i+1]);}} style={{padding:isMobile?"6px 10px":"4px 10px",borderRadius:6,border:`1px solid ${C.border}`,background:"transparent",color:C.textMuted,cursor:"pointer",fontSize:12,flexShrink:0}}>▶</button></div>);
 
 // ╔═══════════════════════════════╗
 // ║  TAB RENDERERS                 ║
 // ╚═══════════════════════════════╝
 const shipRow=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
-function WeeklyTab({weekKey,WS}){
+function WeeklyTab({weekKey,WS,isMobile}){
   const W=WS[weekKey];if(!W)return<NoData msg="해당 주차 데이터가 없습니다."/>;
   const mi=W.monthIndex,dT=getTT("domestic",mi),oT=getTT("overseas",mi);
   const s=W.shipments,o=W.orders,tr=W.treasury;
@@ -222,7 +235,7 @@ function WeeklyTab({weekKey,WS}){
     </TabIntro>
 
     {/* ── Summary Cards ── */}
-    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:14}}>
+    <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:isMobile?8:10,marginBottom:14}}>
       {(()=>{
         const dShipW=hasShip?sumP(s.domestic.weekly):null;
         const oShipW=hasShip?sumP(s.overseas.weekly):null;
@@ -233,10 +246,10 @@ function WeeklyTab({weekKey,WS}){
         const pDOrdW=prevW?.orders?.domestic?.weekly!=null?sumP(prevW.orders.domestic.weekly):null;
         const pOOrdW=prevW?.orders?.overseas?.weekly!=null?sumP(prevW.orders.overseas.weekly):null;
         return[
-          {label:"🇰🇷 출하",val:dShipW,prev:pDShipW,color:C.accent},
-          {label:"🌏 출하 (선적)",val:oShipW,prev:pOShipW,color:C.green},
-          {label:"🇰🇷 수주",val:dOrdW,prev:pDOrdW,color:C.accent},
-          {label:"🌏 수주",val:oOrdW,prev:pOOrdW,color:C.green}
+          {label:"국내 출하",val:dShipW,prev:pDShipW,color:C.accent},
+          {label:"해외 출하 (선적)",val:oShipW,prev:pOShipW,color:C.green},
+          {label:"국내 수주",val:dOrdW,prev:pDOrdW,color:C.accent},
+          {label:"해외 수주",val:oOrdW,prev:pOOrdW,color:C.green}
         ].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}>
           <div style={{fontSize:10,color:C.textDim}}>{c.label}</div>
           <div style={{fontSize:20,fontWeight:700}}>{c.val!=null?fmt(c.val):"—"}<span style={{fontSize:11,color:C.textMuted,marginLeft:3}}>대</span></div>
@@ -248,16 +261,16 @@ function WeeklyTab({weekKey,WS}){
     {/* ── A1. 자금 현황 ── */}
     <Card><SH icon="💰" title="A1. 자금 현황" badge={<Badge color="green">매주 월요일</Badge>} desc="재무본부 자금팀이 매주 월요일 보고하는 회사 전체 자금 포지션. Net Cash 추이로 현금 소진 속도(Burn Rate)를, Runway로 현재 현금으로 몇 개월 운영 가능한지를 판단합니다."/>
       {tr&&<>{/* Gross / Net 핵심 지표 */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
-        <div style={{textAlign:"center",padding:14,background:"rgba(255,255,255,0.02)",borderRadius:8,border:`1px solid ${C.border}`}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?10:14,marginBottom:14}}>
+        <div style={{textAlign:"center",padding:isMobile?12:14,background:"rgba(255,255,255,0.02)",borderRadius:8,border:`1px solid ${C.border}`}}>
           <div style={{fontSize:10,color:C.textDim}}>Gross Cash (총잔고)</div>
-          <div style={{fontSize:28,fontWeight:700,color:C.accent}}>{fmt(Math.round((tr.cashBalance+tr.deposits+(tr.elb||0)+tr.foreignCurrency)/100))}<span style={{fontSize:13,color:C.textMuted,marginLeft:2}}>억</span></div>
+          <div style={{fontSize:isMobile?24:28,fontWeight:700,color:C.accent}}>{fmt(Math.round((tr.cashBalance+tr.deposits+(tr.elb||0)+tr.foreignCurrency)/100))}<span style={{fontSize:13,color:C.textMuted,marginLeft:2}}>억</span></div>
           <div style={{fontSize:11,color:C.textMuted,marginTop:2}}>{fmt(tr.cashBalance+tr.deposits+(tr.elb||0)+tr.foreignCurrency)} 백만</div>
           <div style={{fontSize:9,color:C.textDim,marginTop:3}}>보통예금+정기예금+ELB+외화</div>
         </div>
-        <div style={{textAlign:"center",padding:14,background:"rgba(255,255,255,0.02)",borderRadius:8,border:`1px solid ${C.border}`}}>
+        <div style={{textAlign:"center",padding:isMobile?12:14,background:"rgba(255,255,255,0.02)",borderRadius:8,border:`1px solid ${C.border}`}}>
           <div style={{fontSize:10,color:C.textDim}}>Net Cash (순현금)</div>
-          <div style={{fontSize:28,fontWeight:700,color:tr.netCash>100000?C.green:C.amber}}>{fmt(Math.round(tr.netCash/100))}<span style={{fontSize:13,color:C.textMuted,marginLeft:2}}>억</span></div>
+          <div style={{fontSize:isMobile?24:28,fontWeight:700,color:tr.netCash>100000?C.green:C.amber}}>{fmt(Math.round(tr.netCash/100))}<span style={{fontSize:13,color:C.textMuted,marginLeft:2}}>억</span></div>
           <div style={{fontSize:11,color:C.textMuted,marginTop:2}}>{fmt(tr.netCash)} 백만</div>
           <div style={{fontSize:9,color:C.textDim,marginTop:3}}>총잔고 − 차입금({fmt(tr.borrowings)})</div>
         </div>
@@ -271,7 +284,7 @@ function WeeklyTab({weekKey,WS}){
         <Metric label="차입금 (IBK 기업은행)" value={fmt(tr.borrowings)} unit="백만" color={C.amber}/>
       </div>
       {/* 흐름 지표 — 중앙 정렬 4칸 */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:4}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:isMobile?8:10,marginBottom:4}}>
         {[{l:"금주 흐름",v:fmt(tr.weeklyFlow),u:"백만",c:tr.weeklyFlow>=0?C.green:C.red},
           {l:"당월 누적 흐름",v:fmt(monthCumFlow),u:"백만",c:monthCumFlow>=0?C.green:C.red},
           {l:"월평균 Burn Rate",v:monthlyBurnRate!=null?`△${fmt(Math.abs(monthlyBurnRate))}`:"—",u:"백만/월",c:C.amber},
@@ -321,7 +334,7 @@ function WeeklyTab({weekKey,WS}){
         const cfItems=[{name:"매출대금",value:cf.cfInSales||0,cum:cumCF.inSales,color:"#34d399",type:"in"},{name:"기타수입",value:cf.cfInOther||0,cum:cumCF.inOther,color:"#60a5fa",type:"in"},{name:"인건비",value:cf.cfOutLabor||0,cum:cumCF.outLabor,color:"#f87171",type:"out"},{name:"원자재",value:cf.cfOutMaterial||0,cum:cumCF.outMaterial,color:"#fb923c",type:"out"},{name:"운영비",value:cf.cfOutOpex||0,cum:cumCF.outOpex,color:"#fbbf24",type:"out"},{name:"투자",value:cf.cfInvest||0,cum:cumCF.invest,color:"#a78bfa",type:"out"}];
         return(<div style={{marginTop:14}}>
           <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:8}}>💸 주간 입출금 Breakdown</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
             <div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
                 <div style={{padding:"8px 10px",background:"rgba(52,211,153,0.08)",borderRadius:6,textAlign:"center"}}>
@@ -362,7 +375,7 @@ function WeeklyTab({weekKey,WS}){
     {/* ── A2. 출하 현황 ── */}
     <Card><SH icon="📦" title="A2. 출하 현황" badge={<Badge color="green">매주 금요일</Badge>} desc="ERP 출고 기준 주간/월누적 출하 수량. 국내는 ERP 출고(가납창고 이동 포함), 해외는 선적(Shipping) 기준입니다. 출하 ≠ 매출 인식이므로 참고 지표로 활용합니다."/>
       {hasShip?(<>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
           {[["domestic","🇰🇷 국내"],["overseas","🌏 해외 (선적)"]].map(([rk,rl])=>{const w=s[rk].weekly,m=s[rk].mtd,t=rk==="domestic"?dT:oT;return(<div key={rk}>
             <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{rl}</div>
             <DT compact headers={["품목","금주","월누적","월목표(사업계획)","달성률"]} rows={[
@@ -405,7 +418,7 @@ function WeeklyTab({weekKey,WS}){
           const ovsShipTotal=sumP(s.overseas.weekly);
           return(<div style={{marginTop:12}}>
             <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🌏 해외 선적 국가별 Breakdown (금주)</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+            <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
               <DT compact headers={["국가","수량(개)","비중"]} rows={entries.map(e=>[e.name,fmt(e.val),{v:total>0?((e.val/total)*100).toFixed(0)+"%":"—",color:C.textMuted}]).concat([[{v:"합계",bold:true},{v:fmt(total),bold:true},{v:"100%",bold:true}]])}/>
               <div style={{height:140}}><ResponsiveContainer>
                 <BarChart data={entries.filter(e=>e.val>0).map(e=>({name:e.name.replace(/[^\w가-힣\s]/g,"").trim(),수량:e.val}))} barSize={20} margin={{top:5,right:10,bottom:5,left:0}}>
@@ -428,7 +441,7 @@ function WeeklyTab({weekKey,WS}){
     {/* ── A3. 수주 현황 & Backlog ── */}
     <Card><SH icon="📋" title="A3. 수주 현황 & Backlog" badge={<Badge color="green">매주 금요일</Badge>} desc="고객으로부터 접수된 PO(Purchase Order) 기준 수주 수량. 수주는 매출의 선행지표입니다. Backlog(수주잔고)는 접수되었으나 아직 출하하지 않은 확정 주문으로, 높을수록 향후 출하 여력이 있다는 긍정적 신호입니다."/>
       {hasOrd?(<>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
           {[["domestic","🇰🇷 국내"],["overseas","🌏 해외"]].map(([rk,rl])=>{const w=o[rk].weekly,m=o[rk].mtd,t=getTT(rk,mi);return(<div key={rk}>
             <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{rl}</div>
             <DT compact headers={["품목","금주","월누적","월목표(사업계획)","달성률"]} rows={[
@@ -470,7 +483,7 @@ function WeeklyTab({weekKey,WS}){
   </div>);
 }
 
-function MonthlyTab({monthKey,MS,WS}){
+function MonthlyTab({monthKey,MS,WS,isMobile}){
   const M=MS[monthKey];if(!M)return<NoData msg="해당 월 데이터가 없습니다."/>;
   const mi=M.monthIndex,rv=M.revenue,pl=M.pl,qa=M.qtyActual;
   const dQA=sumP(qa.domestic),oQA=sumP(qa.overseas),dQT=getTT("domestic",mi),oQT=getTT("overseas",mi);
@@ -504,10 +517,10 @@ function MonthlyTab({monthKey,MS,WS}){
     {/* ── B1. 목표 대비 매출 실적 ── */}
     <Card>
       <SH icon="🎯" title="B1. 목표 대비 매출 실적" badge={<Badge color="blue">월간 (익월 15일)</Badge>} desc="연결 기준 가결산 매출과 사업계획 목표 대비 달성률. '연결'이란 국내 본사 + 해외법인 매출을 합산하되 내부거래(법인 간 선적)를 제거한 금액입니다. 하단의 월별 추이 차트로 연간 매출 궤적을, 수량 달성률로 제품 믹스 변화를 함께 모니터링합니다."/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:14}}>
-        <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:12,marginBottom:14}}>
+        <div style={{textAlign:"center",padding:isMobile?10:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
           <div style={{fontSize:10,color:C.textDim}}>연결 매출</div>
-          <div style={{fontSize:26,fontWeight:700}}>{fmtBn(rv.actual)}</div>
+          <div style={{fontSize:isMobile?22:26,fontWeight:700}}>{fmtBn(rv.actual)}</div>
           <div style={{fontSize:11,color:C.textDim}}>목표 {fmtBn(Targets.amt.combined[mi])}</div>
           <div style={{fontSize:14,fontWeight:700,color:pctClr(rv.actual,Targets.amt.combined[mi]),marginTop:4}}>달성률 {pctStr(rv.actual,Targets.amt.combined[mi])}</div>
         </div>
@@ -557,7 +570,7 @@ function MonthlyTab({monthKey,MS,WS}){
     {/* ── B1-2. 지역별 매출 분해 ── */}
     <Card>
       <SH icon="🗺️" title="B1-2. 지역별 매출 Breakdown" badge={<Badge color="blue">월간 가결산</Badge>} desc="연결 가결산 상세 시트 기준 지역별 매출 분해. 매출이 어느 시장에 집중되고 어디가 부진한지를 조기 식별하기 위한 지표입니다. 달성률이 80% 미만인 지역은 하단에 자동으로 경고가 표시됩니다."/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
         <DT headers={["지역","실적(백만)","목표(백만)","달성률","비중"]} rows={
           regData.map(r=>{const share=regTotal>0?((r.val/regTotal)*100).toFixed(1)+"%":"—";
             return[r.name,fmt(r.val),r.target>0?fmt(r.target):"—",{v:r.target>0?pctStr(r.val,r.target):"—",color:r.target>0?pctClr(r.val,r.target):C.textMuted},{v:share,color:C.textMuted}];
@@ -593,10 +606,10 @@ function MonthlyTab({monthKey,MS,WS}){
         const ovsEntries=[{name:"🇺🇸 미국",val:ov.us,prev:pr?.overseas?.us},{name:"🇩🇪 독일",val:ov.de,prev:pr?.overseas?.de},{name:"🇯🇵 일본",val:ov.jp,prev:pr?.overseas?.jp}];
         const imChartData=[{name:"직판",실적:d.direct},{name:"대리점",실적:d.dealer},...ovsEntries.map(e=>({name:e.name.replace(/[^\w가-힣+\s]/g,"").trim(),실적:e.val}))].filter(x=>x.실적>0);
         return(<>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:14}}>
-            <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:12,marginBottom:14}}>
+            <div style={{textAlign:"center",padding:isMobile?10:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
               <div style={{fontSize:10,color:C.textDim}}>해외 법인 합계</div>
-              <div style={{fontSize:22,fontWeight:700}}>{fmt(im.ovsTotal)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div>
+              <div style={{fontSize:isMobile?18:22,fontWeight:700}}>{fmt(im.ovsTotal)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div>
               {pr&&<div style={{marginTop:2}}>{deltaStr(im.ovsTotal,pr.ovsTotal)} <span style={{fontSize:10,color:C.textDim}}>전월비</span></div>}
             </div>
             <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}>
@@ -610,7 +623,7 @@ function MonthlyTab({monthKey,MS,WS}){
               {pr&&<div style={{marginTop:2}}>{deltaStr(im.grandTotal,pr.grandTotal)} <span style={{fontSize:10,color:C.textDim}}>전월비</span></div>}
             </div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🌏 해외 법인 상세</div>
               <DT compact headers={["법인","실적(개)","전월비"]} rows={
@@ -656,7 +669,7 @@ function MonthlyTab({monthKey,MS,WS}){
 
     {/* ── B3. 비용 구조 ── */}
     <Card><SH icon="💸" title="B3. 비용 구조" badge={<Badge color="blue">월간</Badge>} desc="판관비를 5대 비용군으로 재분류하여 비용이 어디에 집중되는지를 파악합니다."/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
         <DT headers={["비용군","집행액(백만)","비중"]} rows={activeCosts.map(g=>{const share=tCA>0?((g.actual/tCA)*100).toFixed(1)+"%":"—";return[g.name,fmt(g.actual),{v:share,color:C.textMuted}];}).concat([[{v:"합계",bold:true},{v:fmt(tCA),bold:true},{v:"100%",bold:true}]])}/>
         <div style={{height:220}}><ResponsiveContainer>
           <BarChart data={activeCosts} layout="vertical" margin={{left:65,right:10,top:5,bottom:5}}>
@@ -671,7 +684,7 @@ function MonthlyTab({monthKey,MS,WS}){
     </Card>
 
     {/* ── B4/B5 side by side ── */}
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+    <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
       <Card style={{marginBottom:0}}>
         <SH icon="💳" title="B4. 매출채권" badge={<Badge color="blue">월간</Badge>} desc="수금률과 장기 연체채권 현황. 매출이 발생해도 대금을 회수하지 못하면 현금흐름에 직접적 부담. 수금률 하락 또는 장기미수 증가는 거래처 신용 리스크 신호입니다."/>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
@@ -679,7 +692,7 @@ function MonthlyTab({monthKey,MS,WS}){
           <Metric label="장기미수 (9개월↑)" value={fmt(M.ar.longOverdue)} unit="백만" color={C.red} small/>
         </div>
         {M.ar.detail&&<div style={{fontSize:10,color:C.textDim,marginTop:4,lineHeight:1.5}}>{M.ar.detail}</div>}
-        {M.arTrend?.length>1&&<div style={{marginTop:8,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        {M.arTrend?.length>1&&<div style={{marginTop:8,display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:10}}>
           <div>
             <div style={{fontSize:10,color:C.textDim,marginBottom:4}}>수금률 추이 (%)</div>
             <div style={{height:110}}><ResponsiveContainer><LineChart data={M.arTrend} margin={{top:2,right:5,bottom:0,left:-20}}>
@@ -709,7 +722,7 @@ function MonthlyTab({monthKey,MS,WS}){
       <Card style={{marginBottom:0}}>
         <SH icon="📦" title="B5. 재고" badge={<Badge color="blue">월간</Badge>} desc="국내/해외 법인별 재고 수량. 과다 재고는 자금 묶임, 과소 재고는 출하 지연·백오더 리스크."/>
         <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🇰🇷 국내</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:8}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:10,marginBottom:8}}>
           <div style={{padding:"8px 10px",background:"rgba(255,255,255,0.03)",borderRadius:6}}>
             <Metric label="가납 재고 (병원 위탁 보관)" value={fmt(M.inventory.domestic)} unit="대" small/>
             {M.inventory.domesticDetail&&<div style={{fontSize:10,color:C.textDim}}>5mm:{M.inventory.domesticDetail.fiveMm}/8mm:{M.inventory.domesticDetail.eightMm}/Seal:{M.inventory.domesticDetail.artiSeal}</div>}
@@ -765,7 +778,7 @@ function MonthlyTab({monthKey,MS,WS}){
       const sevL=sev==="high"?"⚠️ 주의":sev==="mid"?"📋 관리":"✅ 양호";
       return(<Card>
         <SH icon="🚨" title="B6. 백오더" badge={<Badge color="blue">월간</Badge>} desc="납기일을 초과하여 출하가 지연되고 있는 주문 수량. 월 최종 주차 기준 스냅샷입니다. 증가 추세이면 생산·물류 병목 점검이 필요합니다."/>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 2fr",gap:14,marginBottom:10}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 2fr",gap:14,marginBottom:10}}>
           <div style={{padding:14,background:`${sevC}08`,borderRadius:8,border:`1px solid ${sevC}22`,textAlign:"center"}}>
             <div style={{fontSize:10,color:C.textDim,marginBottom:2}}>통합 백오더</div>
             <div style={{fontSize:28,fontWeight:700,color:sevC}}>{fmt(total)}<span style={{fontSize:12,color:C.textMuted,marginLeft:2}}>대</span></div>
@@ -808,7 +821,7 @@ function MonthlyTab({monthKey,MS,WS}){
   </div>);
 }
 
-function QuarterlyTab({qKey,QS}){
+function QuarterlyTab({qKey,QS,isMobile}){
   const Q=QS[qKey];if(!Q)return<NoData msg="해당 분기 데이터가 없습니다."/>;
   const annualTarget=Targets.amt.combined.reduce((s,v)=>s+v,0)/100;
   // Quarterly targets from Targets.amt.combined (3-month sums, in 억)
@@ -884,7 +897,7 @@ function QuarterlyTab({qKey,QS}){
 
     {/* ── C3. 재무 건전성 ── */}
     <Card><SH icon="🏦" title="C3. 재무 건전성" badge={<Badge color="purple">분기 확정</Badge>} desc="연결 재무상태표(BS) 기준 주요 안정성 지표. IPO 이후 현금성자산 유입으로 유동비율이 높은 상태이며, 현금 소진에 따른 비율 변화를 분기별로 모니터링합니다."/>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:12}}>
         <div style={{padding:8,background:"rgba(255,255,255,0.02)",borderRadius:6}}>
           <Metric label="유동비율" value={Q.bs.currentRatio} unit="%" color={C.green}/>
           <div style={{fontSize:9,color:C.textDim,marginTop:2}}>유동자산÷유동부채×100<br/>높을수록 단기 채무 상환 능력 양호</div>
@@ -979,6 +992,7 @@ function QuarterlyTab({qKey,QS}){
 // ║  MAIN DASHBOARD                ║
 // ╚═══════════════════════════════╝
 function Dashboard(){
+  const isMobile=useIsMobile();
   const [tab,setTab]=useState("weekly");
   const [WS,setWS]=useState(fallbackWeekly);
   const [MS,setMS]=useState(fallbackMonthly);
@@ -1034,29 +1048,42 @@ function Dashboard(){
 
   return(<div style={{background:C.bg,minHeight:"100vh",color:C.text,fontFamily:"'IBM Plex Sans','Pretendard',system-ui,sans-serif"}}>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <style>{`
+      *::-webkit-scrollbar{height:3px}
+      *::-webkit-scrollbar-track{background:transparent}
+      *::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+      @media(max-width:767px){
+        .lm-card{padding:12px !important}
+        table th,table td{padding:4px 5px !important;font-size:10px !important}
+      }
+    `}</style>
     {/* Header */}
-    <div style={{padding:"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+    <div style={{padding:isMobile?"12px 14px":"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:isMobile?8:10}}>
       <div>
-        <div style={{fontSize:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v4.9</span></div>
-        <div style={{fontSize:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div>
+        <div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v4.10</span></div>
+        <div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div>
       </div>
-      <div style={{display:"flex",gap:8,alignItems:"center"}}>
-        <div style={{display:"flex",alignItems:"center",gap:6}}>
+      <div style={{display:"flex",gap:isMobile?6:8,alignItems:"center",flexWrap:"wrap",width:isMobile?"100%":undefined,justifyContent:isMobile?"space-between":undefined}}>
+        {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}>
           <span style={{width:6,height:6,borderRadius:"50%",background:statusColor,display:"inline-block"}}/>
           <span style={{fontSize:10,color:statusColor}}>{syncStatus.time?`${syncStatus.time}`:""} {syncStatus.msg}</span>
-        </div>
-        <button onClick={()=>setShowSettings(p=>!p)} style={{padding:"6px 12px",borderRadius:6,border:`1px solid ${showSettings?C.accent:C.border}`,background:showSettings?"rgba(59,130,246,0.15)":"transparent",color:showSettings?C.accent:C.textMuted,cursor:"pointer",fontSize:11,fontWeight:600}}>⚙️ 설정</button>
-        <div style={{display:"flex",gap:4,background:"rgba(255,255,255,0.03)",padding:3,borderRadius:8}}>
-          {["weekly","monthly","quarterly"].map(k=>(<button key={k} style={tabStyle(k)} onClick={()=>setTab(k)}>● {k==="weekly"?"Weekly":k==="monthly"?"Monthly":"Quarterly"}</button>))}
+        </div>}
+        <button onClick={()=>setShowSettings(p=>!p)} style={{padding:isMobile?"6px 10px":"6px 12px",borderRadius:6,border:`1px solid ${showSettings?C.accent:C.border}`,background:showSettings?"rgba(59,130,246,0.15)":"transparent",color:showSettings?C.accent:C.textMuted,cursor:"pointer",fontSize:11,fontWeight:600}}>⚙️{isMobile?"":" 설정"}</button>
+        <div style={{display:"flex",gap:4,background:"rgba(255,255,255,0.03)",padding:3,borderRadius:8,flex:isMobile?1:undefined}}>
+          {["weekly","monthly","quarterly"].map(k=>(<button key={k} style={{...tabStyle(k),padding:isMobile?"7px 10px":"8px 16px",fontSize:isMobile?11:12,flex:isMobile?1:undefined}} onClick={()=>setTab(k)}>{isMobile?(k==="weekly"?"W":k==="monthly"?"M":"Q"):`● ${k==="weekly"?"Weekly":k==="monthly"?"Monthly":"Quarterly"}`}</button>))}
         </div>
       </div>
+      {isMobile&&<div style={{display:"flex",alignItems:"center",gap:6,width:"100%"}}>
+        <span style={{width:5,height:5,borderRadius:"50%",background:statusColor,display:"inline-block"}}/>
+        <span style={{fontSize:9,color:statusColor,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{syncStatus.time?`${syncStatus.time} `:""}{syncStatus.msg}</span>
+      </div>}
     </div>
 
-    <div style={{padding:"16px 20px",maxWidth:1200,margin:"0 auto"}}>
+    <div style={{padding:isMobile?"12px 10px":"16px 20px",maxWidth:1200,margin:"0 auto"}}>
       {/* Settings Panel */}
       {showSettings&&<Card style={{background:"#0d1422",border:`1px solid ${C.accent}44`}}>
         <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><span style={{fontSize:16}}>⚙️</span><span style={{fontSize:14,fontWeight:700}}>Google Sheets 연결 설정</span></div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr auto auto",gap:8,alignItems:"end"}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr auto auto",gap:8,alignItems:"end"}}>
           <div><label style={{fontSize:11,color:C.textMuted,display:"block",marginBottom:4}}>Spreadsheet ID (URL에서 /d/ 와 /edit 사이 문자열)</label><input value={sheetId} onChange={e=>setSheetId(e.target.value)} style={{background:"#0d1117",border:`1px solid ${C.border}`,borderRadius:6,color:C.text,padding:"8px 10px",fontSize:12,width:"100%",fontFamily:"monospace"}} placeholder="예: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"/></div>
           <button onClick={doSync} disabled={loading} style={{padding:"8px 16px",borderRadius:6,border:"none",background:C.accent,color:"#fff",fontSize:12,fontWeight:600,cursor:loading?"wait":"pointer",opacity:loading?0.6:1}}>{loading?"⏳ 동기화 중...":"🔄 동기화"}</button>
           <button onClick={()=>{setWS(fallbackWeekly);setMS(fallbackMonthly);setQS(fallbackQuarterly);setSyncStatus({state:"idle",msg:"Fallback 데이터로 복원",time:null});}} style={{padding:"8px 16px",borderRadius:6,border:`1px solid ${C.border}`,background:"transparent",color:C.textMuted,fontSize:12,cursor:"pointer"}}>↩ Fallback</button>
@@ -1071,9 +1098,9 @@ function Dashboard(){
       </Card>}
 
       {/* Period Nav + Tab Content */}
-      {tab==="weekly"&&<><PeriodNav keys={Object.keys(WS).sort()} current={weekKey} onChange={setWeekKey} colorActive={C.weekly} labels={Object.fromEntries(Object.entries(WS).map(([k,v])=>[k,v.label?v.label.replace(/\s*\(.*\)/,""):k]))}/><WeeklyTab weekKey={weekKey} WS={WS}/></>}
-      {tab==="monthly"&&<><PeriodNav keys={Object.keys(MS).sort().filter(k=>k>="2025-12")} current={monthKey} onChange={setMonthKey} colorActive={C.monthly}/><MonthlyTab monthKey={monthKey} MS={MS} WS={WS}/></>}
-      {tab==="quarterly"&&<><PeriodNav keys={Object.keys(QS).sort()} current={quarterKey} onChange={setQuarterKey} colorActive={C.quarterly}/><QuarterlyTab qKey={quarterKey} QS={QS}/></>}
+      {tab==="weekly"&&<><PeriodNav keys={Object.keys(WS).sort()} current={weekKey} onChange={setWeekKey} colorActive={C.weekly} labels={Object.fromEntries(Object.entries(WS).map(([k,v])=>[k,v.label?v.label.replace(/\s*\(.*\)/,""):k]))} isMobile={isMobile}/><WeeklyTab weekKey={weekKey} WS={WS} isMobile={isMobile}/></>}
+      {tab==="monthly"&&<><PeriodNav keys={Object.keys(MS).sort().filter(k=>k>="2025-12")} current={monthKey} onChange={setMonthKey} colorActive={C.monthly} isMobile={isMobile}/><MonthlyTab monthKey={monthKey} MS={MS} WS={WS} isMobile={isMobile}/></>}
+      {tab==="quarterly"&&<><PeriodNav keys={Object.keys(QS).sort()} current={quarterKey} onChange={setQuarterKey} colorActive={C.quarterly} isMobile={isMobile}/><QuarterlyTab qKey={quarterKey} QS={QS} isMobile={isMobile}/></>}
 
       <div style={{marginTop:20,padding:"12px 0",borderTop:`1px solid ${C.border}`,display:"flex",flexDirection:"column",gap:6,fontSize:10,color:C.textDim}}>
         <div style={{textAlign:"center",color:C.textDim,fontStyle:"italic"}}>본 대시보드는 수동 입력 기반이며 실시간 데이터가 아닙니다. 각 지표의 업데이트 주기는 탭별 안내를 참고하세요.</div>
@@ -1112,19 +1139,27 @@ function PasswordGate(){
   return(
     <div style={{background:C.bg,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'IBM Plex Sans','Pretendard',system-ui,sans-serif"}}>
       <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+      <style>{`
+        @keyframes shake {
+          0%,100%{transform:translateX(0)}
+          20%,60%{transform:translateX(-8px)}
+          40%,80%{transform:translateX(8px)}
+        }
+        *::-webkit-scrollbar{height:3px;}
+        *::-webkit-scrollbar-track{background:transparent;}
+        *::-webkit-scrollbar-thumb{background:#334155;border-radius:3px;}
+        @media(max-width:767px){
+          table{font-size:10px!important;}
+          table th,table td{padding:4px 5px!important;}
+          .lm-card{padding:14px!important;}
+        }
+      `}</style>
       <div style={{
         width:380,maxWidth:"90vw",padding:40,borderRadius:16,
         background:C.card,border:`1px solid ${C.border}`,
         textAlign:"center",
         animation:shake?"shake 0.4s ease":"none"
       }}>
-        <style>{`
-          @keyframes shake {
-            0%,100%{transform:translateX(0)}
-            20%,60%{transform:translateX(-8px)}
-            40%,80%{transform:translateX(8px)}
-          }
-        `}</style>
         <div style={{fontSize:32,marginBottom:8}}>🔒</div>
         <div style={{fontSize:20,fontWeight:700,color:C.text,marginBottom:4}}>
           <span style={{color:C.accent}}>LIVSMED</span> Dashboard
