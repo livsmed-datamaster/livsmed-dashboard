@@ -325,7 +325,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
       </>):(<NoData msg="출하 데이터 미수신"/>)}
     </Card>
 
-    {/* ── A2. 수주 현황 & Backlog ── */}
+    {/* ── A2. 수주 현황 ── */}
     <Card><SH icon="📋" title="A2. 수주 현황 & Backlog" badge={<Badge color="green">매주 금요일</Badge>} desc="고객으로부터 접수된 PO(Purchase Order) 기준 수주 수량. 수주는 매출의 선행지표입니다. Backlog(수주잔고)는 접수되었으나 아직 출하하지 않은 확정 주문으로, 높을수록 향후 출하 여력이 있다는 긍정적 신호입니다."/>
       {hasOrd?(<>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
