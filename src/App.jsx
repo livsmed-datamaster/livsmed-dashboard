@@ -277,7 +277,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
       </div>
       {/* 자금 구성 상세 */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginBottom:14}}>
-        <Metric label="보통예금 (우리·기업·산업)" value={fmt(tr.cashBalance)} unit="백만"/>
+        <Metric label="보통예금" value={fmt(tr.cashBalance)} unit="백만"/>
         <Metric label="정기예금 (우리·기업·산업)" value={fmt(tr.deposits)} unit="백만"/>
         {tr.elb>0&&<Metric label="ELB (주가연계파생결합사채, 한투 6개월)" value={fmt(tr.elb)} unit="백만"/>}
         <Metric label="외화 (USD·JPY 보유)" value={fmt(tr.foreignCurrency)} unit="백만"/>
