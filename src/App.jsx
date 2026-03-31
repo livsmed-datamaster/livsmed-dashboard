@@ -229,9 +229,9 @@ function WeeklyTab({weekKey,WS,isMobile}){
   const trendTooltip=(v,n,_,payload)=>{if(!payload||!payload.length)return[`${fmt(v)}대`,n];const total=payload.reduce((s,p)=>s+(p.value||0),0);return[`${fmt(v)}대`,`${n} (합계 ${fmt(total)}대)`];};
   return(<div>
     <TabIntro color={C.green} icon="📡" title="Weekly — 주간 운영 현황">
-      주간 단위로 업데이트되는 <strong style={{color:C.text}}>운영 지표</strong>입니다. 출하·수주(금요일)와 자금 현황(월요일)이 매주 갱신됩니다.<br/>
-      핵심 질문: <strong style={{color:C.text}}>"이번 주 영업 활동은 정상 궤도인가? 현금 흐름은 안정적인가?"</strong><br/>
-      출하·수주는 ERP 기반 집계이며, 자금 현황은 재무본부의 주별 집계 데이터입니다.
+      주간 단위로 업데이트되는 <strong style={{color:C.text}}>운영 지표</strong>입니다. 수주·출하(금요일)와 자금 현황(월요일)이 매주 갱신됩니다.<br/>
+      핵심 질문: <strong style={{color:C.text}}>"이번 주 수주는 들어오고 있는가? 출하는 이루어지고 있는가? 현금 흐름은 안정적인가?"</strong><br/>
+      수주·출하는 ERP 기반 집계이며, 자금 현황은 재무본부의 주별 집계 데이터입니다.
     </TabIntro>
 
     {/* ── Summary Cards ── */}
@@ -246,10 +246,10 @@ function WeeklyTab({weekKey,WS,isMobile}){
         const pDOrdW=prevW?.orders?.domestic?.weekly!=null?sumP(prevW.orders.domestic.weekly):null;
         const pOOrdW=prevW?.orders?.overseas?.weekly!=null?sumP(prevW.orders.overseas.weekly):null;
         return[
-          {label:"국내 출하",val:dShipW,prev:pDShipW,color:C.accent},
-          {label:"해외 출하 (선적)",val:oShipW,prev:pOShipW,color:C.green},
           {label:"국내 수주",val:dOrdW,prev:pDOrdW,color:C.accent},
-          {label:"해외 수주",val:oOrdW,prev:pOOrdW,color:C.green}
+          {label:"해외 수주",val:oOrdW,prev:pOOrdW,color:C.green},
+          {label:"국내 출하",val:dShipW,prev:pDShipW,color:C.accent},
+          {label:"해외 출하 (선적)",val:oShipW,prev:pOShipW,color:C.green}
         ].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}>
           <div style={{fontSize:10,color:C.textDim}}>{c.label}</div>
           <div style={{fontSize:20,fontWeight:700}}>{c.val!=null?fmt(c.val):"—"}<span style={{fontSize:11,color:C.textMuted,marginLeft:2}}>대</span></div>
@@ -258,9 +258,52 @@ function WeeklyTab({weekKey,WS,isMobile}){
       })()}
     </div>
 
+    {/* ── A1. 수주 현황 & Backlog ── */}
+    <Card><SH icon="📋" title="A1. 수주 현황 & Backlog" badge={<Badge color="green">매주 금요일</Badge>} desc="고객으로부터 접수된 PO(Purchase Order) 기준 수주 수량. 수주는 매출의 선행지표입니다. Backlog(수주잔고)는 접수되었으나 아직 출하하지 않은 확정 주문으로, 높을수록 향후 출하 여력이 있다는 긍정적 신호입니다."/>
+      {hasOrd?(<>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
+          {[["domestic","🇰🇷 국내"],["overseas","🌏 해외"]].map(([rk,rl])=>{const w=o[rk].weekly,m=o[rk].mtd,t=getTT(rk,mi);return(<div key={rk}>
+            <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{rl}</div>
+            <DT compact headers={["품목","금주(대)","월누적(대)","월목표(대)","달성률"]} rows={[
+              shipRow("ArtiSential",w.ArtiSential,m.ArtiSential,Targets.qty[rk].ArtiSential[mi]),
+              shipRow("ArtiSeal",w.ArtiSeal,m.ArtiSeal,Targets.qty[rk].ArtiSeal[mi]),
+              [{v:"합계",bold:true},{v:fmt(sumP(w)),bold:true},{v:fmt(sumP(m)),bold:true},{v:fmt(t),bold:true},{v:pctStr(sumP(m),t),color:pctClr(sumP(m),t),bold:true}]
+            ]}/>
+            {o[rk].backlog!=null&&<Metric label="Backlog" value={fmt(o[rk].backlog)} unit="대" small/>}
+          </div>);})}
+        </div>
+        {ordAchData.length>0&&<div style={{marginTop:10,height:120}}><ResponsiveContainer>
+          <BarChart data={ordAchData} layout="vertical" margin={{left:40,right:20,top:5,bottom:5}}>
+            <XAxis type="number" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false}/>
+            <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
+            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/>
+            <Bar dataKey="target" fill="#475569" radius={[0,3,3,0]} opacity={0.4} name="월목표(사업계획)"/>
+            <Bar dataKey="actual" fill={C.green} radius={[0,3,3,0]} name="월누적"/>
+          </BarChart>
+        </ResponsiveContainer></div>}
+        {ordTrend8.length>=2&&<div style={{marginTop:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {ordTrend8.length}주 수주 트렌드 (AS/VS × 국내/해외)</div>
+          <div style={{height:200}}><ResponsiveContainer>
+            <BarChart data={ordTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs}))} barSize={24} margin={{top:5,right:10,bottom:0,left:0}}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
+              <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
+              <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
+              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={trendTooltip}/>
+              <Legend wrapperStyle={{fontSize:9}}/>
+              <Bar dataKey="AS_dom" name="AS 국내" stackId="a" fill={C.accent}/>
+              <Bar dataKey="AS_ovs" name="AS 해외" stackId="a" fill={C.green}/>
+              <Bar dataKey="VS_dom" name="VS 국내" stackId="a" fill={C.amber}/>
+              <Bar dataKey="VS_ovs" name="VS 해외" stackId="a" fill={C.purple} radius={[3,3,0,0]}/>
+            </BarChart>
+          </ResponsiveContainer></div>
+        </div>}
+      </>):(<NoData msg="수주 데이터 미수신"/>)}
+      <Fn>※ PO 접수 기준, ArtiSential+ArtiSeal만 집계 (Trocar·Kit·Generator 등 제외). 국내/해외 분류 기준: 통화(KRW=국내, 非KRW=해외). 국내 수주는 월말 집중 경향이 있어 1~2주차 수치가 낮은 것은 정상 패턴. Backlog(수주잔고) = 미출고 확정주문(긍정적 지표) ≠ 백오더(납기지연, 부정적 지표). 해외 수주는 PO 접수 ~ 선적까지 리드타임 존재.</Fn>
+    </Card>
 
-    {/* ── A1. 출하 현황 ── */}
-    <Card><SH icon="📦" title="A1. 출하 현황" badge={<Badge color="green">매주 금요일</Badge>} desc="ERP 출고 기준 주간/월누적 출하 수량. 국내는 ERP 출고(가납창고 이동 포함), 해외는 선적(Shipping) 기준입니다. 출하 ≠ 매출 인식이므로 참고 지표로 활용합니다."/>
+
+    {/* ── A2. 출하 현황 ── */}
+    <Card><SH icon="📦" title="A2. 출하 현황" badge={<Badge color="green">매주 금요일</Badge>} desc="ERP 출고 기준 주간/월누적 출하 수량. 국내는 ERP 출고(가납창고 이동 포함), 해외는 선적(Shipping) 기준입니다. 출하 ≠ 매출 인식이므로 참고 지표로 활용합니다."/>
       {hasShip?(<>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
           {[["domestic","🇰🇷 국내"],["overseas","🌏 해외 (선적)"]].map(([rk,rl])=>{const w=s[rk].weekly,m=s[rk].mtd,t=rk==="domestic"?dT:oT;return(<div key={rk}>
@@ -325,49 +368,6 @@ function WeeklyTab({weekKey,WS,isMobile}){
       </>):(<NoData msg="출하 데이터 미수신"/>)}
     </Card>
 
-    {/* ── A2. 수주 현황 ── */}
-    <Card><SH icon="📋" title="A2. 수주 현황 " badge={<Badge color="green">매주 금요일</Badge>} desc="고객으로부터 접수된 PO(Purchase Order) 기준 수주 수량. 수주는 매출의 선행지표입니다. Backlog(수주잔고)는 접수되었으나 아직 출하하지 않은 확정 주문으로, 높을수록 향후 출하 여력이 있다는 긍정적 신호입니다."/>
-      {hasOrd?(<>
-        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
-          {[["domestic","🇰🇷 국내"],["overseas","🌏 해외"]].map(([rk,rl])=>{const w=o[rk].weekly,m=o[rk].mtd,t=getTT(rk,mi);return(<div key={rk}>
-            <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{rl}</div>
-            <DT compact headers={["품목","금주(대)","월누적(대)","월목표(대)","달성률"]} rows={[
-              shipRow("ArtiSential",w.ArtiSential,m.ArtiSential,Targets.qty[rk].ArtiSential[mi]),
-              shipRow("ArtiSeal",w.ArtiSeal,m.ArtiSeal,Targets.qty[rk].ArtiSeal[mi]),
-              [{v:"합계",bold:true},{v:fmt(sumP(w)),bold:true},{v:fmt(sumP(m)),bold:true},{v:fmt(t),bold:true},{v:pctStr(sumP(m),t),color:pctClr(sumP(m),t),bold:true}]
-            ]}/>
-            {o[rk].backlog!=null&&<Metric label="Backlog" value={fmt(o[rk].backlog)} unit="대" small/>}
-          </div>);})}
-        </div>
-        {ordAchData.length>0&&<div style={{marginTop:10,height:120}}><ResponsiveContainer>
-          <BarChart data={ordAchData} layout="vertical" margin={{left:40,right:20,top:5,bottom:5}}>
-            <XAxis type="number" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false}/>
-            <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-            <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/>
-            <Bar dataKey="target" fill="#475569" radius={[0,3,3,0]} opacity={0.4} name="월목표(사업계획)"/>
-            <Bar dataKey="actual" fill={C.green} radius={[0,3,3,0]} name="월누적"/>
-          </BarChart>
-        </ResponsiveContainer></div>}
-        {ordTrend8.length>=2&&<div style={{marginTop:12}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 최근 {ordTrend8.length}주 수주 트렌드 (AS/VS × 국내/해외)</div>
-          <div style={{height:200}}><ResponsiveContainer>
-            <BarChart data={ordTrend8.map(d=>({...d,합계:d.AS_dom+d.AS_ovs+d.VS_dom+d.VS_ovs}))} barSize={24} margin={{top:5,right:10,bottom:0,left:0}}>
-              <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
-              <XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-              <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/>
-              <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={trendTooltip}/>
-              <Legend wrapperStyle={{fontSize:9}}/>
-              <Bar dataKey="AS_dom" name="AS 국내" stackId="a" fill={C.accent}/>
-              <Bar dataKey="AS_ovs" name="AS 해외" stackId="a" fill={C.green}/>
-              <Bar dataKey="VS_dom" name="VS 국내" stackId="a" fill={C.amber}/>
-              <Bar dataKey="VS_ovs" name="VS 해외" stackId="a" fill={C.purple} radius={[3,3,0,0]}/>
-            </BarChart>
-          </ResponsiveContainer></div>
-        </div>}
-      </>):(<NoData msg="수주 데이터 미수신"/>)}
-      <Fn>※ PO 접수 기준, ArtiSential+ArtiSeal만 집계 (Trocar·Kit·Generator 등 제외). 국내/해외 분류 기준: 통화(KRW=국내, 非KRW=해외). 국내 수주는 월말 집중 경향이 있어 1~2주차 수치가 낮은 것은 정상 패턴. Backlog(수주잔고) = 미출고 확정주문(긍정적 지표) ≠ 백오더(납기지연, 부정적 지표). 해외 수주는 PO 접수 ~ 선적까지 리드타임 존재.</Fn>
-    </Card>
-
     {/* ── A3. 자금 현황 ── */}
     <Card><SH icon="💰" title="A3. 자금 현황" badge={<Badge color="green">매주 월요일</Badge>} desc="재무본부 자금팀이 매주 월요일 보고하는 회사 전체 자금 포지션. Net Cash 추이로 현금 소진 속도(Burn Rate)를, Runway로 현재 현금으로 몇 개월 운영 가능한지를 판단합니다."/>
       {tr&&<>{/* Gross / Net 핵심 지표 */}
@@ -387,7 +387,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
       </div>
       {/* 자금 구성 상세 */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginBottom:14}}>
-        <Metric label="보통예금" value={fmt(tr.cashBalance)} unit="백만원"/>
+        <Metric label="보통예금 (우리·기업·산업)" value={fmt(tr.cashBalance)} unit="백만원"/>
         <Metric label="정기예금 (우리·기업·산업)" value={fmt(tr.deposits)} unit="백만원"/>
         {tr.elb>0&&<Metric label="ELB (주가연계파생결합사채, 한투 6개월)" value={fmt(tr.elb)} unit="백만원"/>}
         <Metric label="외화 (USD·JPY 보유)" value={fmt(tr.foreignCurrency)} unit="백만원"/>
