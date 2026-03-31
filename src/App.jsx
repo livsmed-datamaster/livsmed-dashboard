@@ -16,7 +16,7 @@ function useIsMobile(breakpoint=768){
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v4.9 — Google Sheets Integration           ║
+// ║  LIVSMED Executive Dashboard v4.12 — Google Sheets Integration          ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 // ── Password (변경 시 이 값만 수정) ──
@@ -258,8 +258,8 @@ function WeeklyTab({weekKey,WS,isMobile}){
       })()}
     </div>
 
-    {/* ── A1. 수주 현황 & Backlog ── */}
-    <Card><SH icon="📋" title="A1. 수주 현황 & Backlog" badge={<Badge color="green">매주 금요일</Badge>} desc="고객으로부터 접수된 PO(Purchase Order) 기준 수주 수량. 수주는 매출의 선행지표입니다. Backlog(수주잔고)는 접수되었으나 아직 출하하지 않은 확정 주문으로, 높을수록 향후 출하 여력이 있다는 긍정적 신호입니다."/>
+    {/* ── A1. 수주 현황 ── */}
+    <Card><SH icon="📋" title="A1. 수주 현황 " badge={<Badge color="green">매주 금요일</Badge>} desc="고객으로부터 접수된 PO(Purchase Order) 기준 수주 수량. 수주는 매출의 선행지표입니다. Backlog(수주잔고)는 접수되었으나 아직 출하하지 않은 확정 주문으로, 높을수록 향후 출하 여력이 있다는 긍정적 신호입니다."/>
       {hasOrd?(<>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
           {[["domestic","🇰🇷 국내"],["overseas","🌏 해외"]].map(([rk,rl])=>{const w=o[rk].weekly,m=o[rk].mtd,t=getTT(rk,mi);return(<div key={rk}>
@@ -387,7 +387,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
       </div>
       {/* 자금 구성 상세 */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginBottom:14}}>
-        <Metric label="보통예금 (우리·기업·산업)" value={fmt(tr.cashBalance)} unit="백만원"/>
+        <Metric label="보통예금" value={fmt(tr.cashBalance)} unit="백만원"/>
         <Metric label="정기예금 (우리·기업·산업)" value={fmt(tr.deposits)} unit="백만원"/>
         {tr.elb>0&&<Metric label="ELB (주가연계파생결합사채, 한투 6개월)" value={fmt(tr.elb)} unit="백만원"/>}
         <Metric label="외화 (USD·JPY 보유)" value={fmt(tr.foreignCurrency)} unit="백만원"/>
@@ -1061,7 +1061,7 @@ function Dashboard(){
     {/* Header */}
     <div style={{padding:isMobile?"12px 14px":"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:isMobile?8:10}}>
       <div>
-        <div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v4.10</span></div>
+        <div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v4.12</span></div>
         <div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div>
       </div>
       <div style={{display:"flex",gap:isMobile?6:8,alignItems:"center",flexWrap:"wrap",width:isMobile?"100%":undefined,justifyContent:isMobile?"space-between":undefined}}>
