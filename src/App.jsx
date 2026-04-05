@@ -181,7 +181,7 @@ const DT=({headers,rows,compact})=>(<div style={{overflowX:"auto"}}><table style
 const PeriodNav=({keys,current,onChange,colorActive,labels,isMobile})=>(<div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}><button onClick={()=>{const i=keys.indexOf(current);if(i>0)onChange(keys[i-1]);}} style={{padding:isMobile?"6px 10px":"4px 10px",borderRadius:6,border:`1px solid ${C.border}`,background:"transparent",color:C.textMuted,cursor:"pointer",fontSize:12,flexShrink:0}}>◀</button><div style={{display:"flex",gap:4,flexWrap:isMobile?"nowrap":"wrap",overflowX:isMobile?"auto":"visible",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",msOverflowStyle:"none",flex:1}}>{keys.map(k=>(<button key={k} onClick={()=>onChange(k)} style={{padding:isMobile?"7px 12px":"5px 12px",borderRadius:6,fontSize:11,fontWeight:600,border:"none",cursor:"pointer",transition:"all 0.2s",background:k===current?colorActive:"rgba(255,255,255,0.04)",color:k===current?"#fff":C.textMuted,whiteSpace:"nowrap",flexShrink:0}}>{labels&&labels[k]?labels[k]:k}</button>))}</div><button onClick={()=>{const i=keys.indexOf(current);if(i<keys.length-1)onChange(keys[i+1]);}} style={{padding:isMobile?"6px 10px":"4px 10px",borderRadius:6,border:`1px solid ${C.border}`,background:"transparent",color:C.textMuted,cursor:"pointer",fontSize:12,flexShrink:0}}>▶</button></div>);
 
 // ── v5.0 Chart Colors ──
-const CC={dlrAS:"#3b82f6",dirAS:"#93c5fd",dlrVS:"#f59e0b",dirVS:"#fcd34d",corpAS:"#10b981",distAS:"#6ee7b7",corpVS:"#8b5cf6",distVS:"#c4b5fd",imUS:"#ef4444",imDE:"#10b981",imJP:"#f59e0b"};
+const CC={dlrAS:"#3b82f6",dirAS:"#f97316",dlrVS:"#8b5cf6",dirVS:"#14b8a6",corpAS:"#10b981",distAS:"#f43f5e",corpVS:"#eab308",distVS:"#6366f1",imUS:"#ef4444",imDE:"#3b82f6",imJP:"#f59e0b"};
 const shipRow2=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
 // ╔═══════════════════════════════╗
@@ -211,6 +211,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
   const ovsOrdT=mkT(w=>({"지사국 AS":w?.orders?.ovsCorp?.w?.AS||0,"대리점국 AS":w?.orders?.ovsDist?.w?.AS||0,"지사국 VS":w?.orders?.ovsCorp?.w?.Seal||0,"대리점국 VS":w?.orders?.ovsDist?.w?.Seal||0}));
   const ovsShipT=mkT(w=>({"지사국 AS":w?.shipments?.ovsCorp?.w?.AS||0,"대리점국 AS":w?.shipments?.ovsDist?.w?.AS||0,"지사국 VS":w?.shipments?.ovsCorp?.w?.Seal||0,"대리점국 VS":w?.shipments?.ovsDist?.w?.Seal||0}));
   const imT=mkT(w=>({"미국":w?.inmarket?.w?.us||0,"독일":w?.inmarket?.w?.de||0,"일본":w?.inmarket?.w?.jp||0}));
+  const corpShipCountryT=mkT(w=>({"미국":w?.shipments?.ovsCorp?.country?.w_us||0,"독일":w?.shipments?.ovsCorp?.country?.w_de||0,"일본":w?.shipments?.ovsCorp?.country?.w_jp||0}));
   // 스택 바 (함수 호출, React 컴포넌트 아님 — 리렌더 이슈 방지)
   const stk2=(data,k1,k2,c1,c2,label)=>{if(data.length<2)return null;return(<div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{label}</div><div style={{height:200}}><ResponsiveContainer><BarChart data={data} barSize={22} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/><Legend wrapperStyle={{fontSize:9}}/><Bar dataKey={k1} stackId="s" fill={c1} name={k1}/><Bar dataKey={k2} stackId="s" fill={c2} radius={[3,3,0,0]} name={k2}/></BarChart></ResponsiveContainer></div></div>);};
   const stk3=(data,label)=>{if(data.length<2)return null;return(<div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{label}</div><div style={{height:200}}><ResponsiveContainer><BarChart data={data} barSize={22} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/><Legend wrapperStyle={{fontSize:9}}/><Bar dataKey="미국" stackId="s" fill={CC.imUS}/><Bar dataKey="독일" stackId="s" fill={CC.imDE}/><Bar dataKey="일본" stackId="s" fill={CC.imJP} radius={[3,3,0,0]}/></BarChart></ResponsiveContainer></div></div>);};
@@ -300,6 +301,9 @@ function WeeklyTab({weekKey,WS,isMobile}){
         {stk2(ovsShipT,"지사국 AS","대리점국 AS",CC.corpAS,CC.distAS,"📈 해외 출하 추이 — ArtiSential (8주)")}
         {stk2(ovsShipT,"지사국 VS","대리점국 VS",CC.corpVS,CC.distVS,"📈 해외 출하 추이 — ArtiSeal (8주)")}
       </div>
+      {corpShipCountryT.length>=2&&<div style={{marginTop:14}}>
+        {stk3(corpShipCountryT,"📈 지사국 출하 국가별 추이 — 미국/독일/일본 (8주, AS+VS 합산)")}
+      </div>}
       <Fn>※ 매출확정리스트 Sales Date 기준, 유상·Commercial만. '해외법인'=지사국, '디스트리뷰터'=대리점국. 지사국 국가별은 AS+VS 합산.</Fn>
     </Card>
 
