@@ -16,7 +16,7 @@ function useIsMobile(breakpoint=768){
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v5.0 — Weekly 전면 개편 (DB v20 48컬럼)    ║
+// ║  LIVSMED Executive Dashboard v5.0.3 — 신규칙 주차 + 일평균 WoW          ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 const DASHBOARD_PASSWORD = "livsmed1000jo";
@@ -24,21 +24,23 @@ const DASHBOARD_PASSWORD = "livsmed1000jo";
 // ── Targets (하드코딩 — 사업계획 변경 시만 수정) ──
 const Targets={
   qty:{domestic:{ArtiSential:[6685,6595,7465,6356,6434,6899,10521,11701,13379,14059,14828,16267],ArtiSeal:[1310,1490,1730,985,1015,1145,1715,1930,2190,2950,3145,3395],ArtiStapler:[0,0,0,0,0,0,100,100,200,400,600,600]},
+    domDealer:{ArtiSential:[5925,5955,6445,5236,5230,5679,9197,10371,12069,12689,13388,14617],ArtiSeal:[1255,1415,1610,735,720,830,1325,1480,1640,2375,2565,2785]},
+    domDirect:{ArtiSential:[760,640,1020,1120,1204,1220,1324,1330,1310,1370,1440,1650],ArtiSeal:[55,75,120,250,295,315,390,450,550,575,580,610]},
     overseas:{ArtiSential:[851,5008,6160,5243,5888,8298,7293,9408,19083,9019,10039,29759],ArtiSeal:[370,845,1235,895,1025,1475,1344,1386,4435,1451,2731,7772],ArtiStapler:[0,0,0,0,0,0,0,0,0,0,0,0]}},
   amt:{domestic:[3223,3239,3757,3095,3166,3401,5131,5677,6510,7239,7786,8481],overseas:[568,2753,3500,2875,3231,4546,3987,4902,10776,4758,5921,17201],combined:[3791,5992,7257,5970,6396,7947,9118,10580,17286,11997,13707,25682],
     regions:{us:[335,2311,2345,2312,2345,2345,2312,2345,2345,2312,2379,2443],de:[59,59,237,89,118,296,89,89,232,118,118,262],jp:[173,185,196,244,257,269,309,352,392,436,448,519],other:[0,0,34,0,0,213,265,265,1096,303,303,2420]}}
 };
-const getTT=(r,mi)=>(Targets.qty[r].ArtiSential[mi]||0)+(Targets.qty[r].ArtiSeal[mi]||0)+(Targets.qty[r].ArtiStapler[mi]||0);
+const getTT=(r,mi)=>(Targets.qty[r]?.ArtiSential?.[mi]||0)+(Targets.qty[r]?.ArtiSeal?.[mi]||0)+(Targets.qty[r]?.ArtiStapler?.[mi]||0);
 const sum2=o=>o?(o.AS||0)+(o.Seal||0):0;
 
 // ── Fallback Data ──
-const fallbackWeekly={"2026.03 W4":{label:"2026.03 W4",updated:"2026.04.06",monthIndex:2,orders:{domDealer:{w:{AS:1680,Seal:60},m:{AS:14240,Seal:902}},domDirect:{w:{AS:37,Seal:20},m:{AS:862,Seal:300}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:980,Seal:0}},ovsDist:{w:{AS:0,Seal:0},m:{AS:180,Seal:50}}},shipments:{domDealer:{w:{AS:1680,Seal:60},m:{AS:14240,Seal:902}},domDirect:{w:{AS:37,Seal:20},m:{AS:862,Seal:300}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:340,Seal:0},country:{w_us:0,w_de:0,w_jp:0,m_us:240,m_de:50,m_jp:50}},ovsDist:{w:{AS:0,Seal:0},m:{AS:25,Seal:30}}},inmarket:{w:{us:71,de:116,jp:115},m:{us:117,de:201,jp:179}},treasury:{cashBalance:13800,deposits:110000,elb:0,foreignCurrency:625,borrowings:3000,netCash:121425,weeklyFlow:-315,prevFlow:-1970,runway:24.2,trend:[{wk:"03 W1",flow:566},{wk:"03 W2",flow:-200},{wk:"03 W3",flow:-400},{wk:"03 W4",flow:-315}]}}};
+const fallbackWeekly={"2026.03 W4":{label:"2026.03 W4",updated:"2026.04.06",monthIndex:2,daysInWeek:7,orders:{domDealer:{w:{AS:1680,Seal:60},m:{AS:14240,Seal:902}},domDirect:{w:{AS:37,Seal:20},m:{AS:862,Seal:300}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:980,Seal:0}},ovsDist:{w:{AS:0,Seal:0},m:{AS:180,Seal:50}}},shipments:{domDealer:{w:{AS:1680,Seal:60},m:{AS:14240,Seal:902}},domDirect:{w:{AS:37,Seal:20},m:{AS:862,Seal:300}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:340,Seal:0},country:{w_us:0,w_de:0,w_jp:0,m_us:240,m_de:50,m_jp:50}},ovsDist:{w:{AS:0,Seal:0},m:{AS:25,Seal:30}}},inmarket:{w:{us:71,de:116,jp:115},m:{us:117,de:201,jp:179}},treasury:{cashBalance:13800,deposits:110000,elb:0,foreignCurrency:625,borrowings:3000,netCash:121425,weeklyFlow:-315,prevFlow:-1970,runway:24.2,trend:[{wk:"03 W1",flow:566},{wk:"03 W2",flow:-200},{wk:"03 W3",flow:-400},{wk:"03 W4",flow:-315}]}}};
 const fallbackMonthly={"2025-11":{label:"FY2025 11월 가결산 (REV01)",updated:"2025.12.16",monthIndex:10,revenue:{actual:4583,plan:7013,prev:3830,domActual:4346,ovsActual:237},pl:{cogs:1930,grossProfit:2653,grossMarginPct:57.9,opLoss:{actual:-1478,plan:277},ebitda:{actual:-1398,plan:310},netLoss:{actual:-1556,plan:282},costGroups:[{name:"인건비",actual:1560,plan:1543},{name:"R&D",actual:858,plan:970},{name:"영업활동",actual:765,plan:974},{name:"해외시장개척",actual:0,plan:31},{name:"기타",actual:948,plan:501}]},qtyActual:{domestic:{ArtiSential:5820,ArtiSeal:1050,ArtiStapler:0},overseas:{ArtiSential:620,ArtiSeal:280,ArtiStapler:0}},standalone:5569,consolidated:4583,regions:[{name:"🇰🇷 국내",data:[{m:"9월",v:4173},{m:"10월",v:3512},{m:"11월",v:4346}],target:5333,color:"#3b82f6"},{name:"🇺🇸 미국",data:[{m:"9월",v:246},{m:"10월",v:181},{m:"11월",v:46}],target:1434,color:"#ef4444"},{name:"🇩🇪 독일",data:[{m:"9월",v:56},{m:"10월",v:82},{m:"11월",v:95}],target:111,color:"#10b981"},{name:"🇯🇵 일본",data:[{m:"9월",v:36},{m:"10월",v:20},{m:"11월",v:32}],target:46,color:"#f59e0b"},{name:"🌍 기타",data:[{m:"9월",v:89},{m:"10월",v:36},{m:"11월",v:65}],target:89,color:"#a78bfa"}],ar:{balance:4250,collectionRate:88.5,longOverdue:99,detail:"국내 연체 47백만, 해외 연체 52백만"},inventory:{domestic:1297,overseas:3838,domesticDetail:{fiveMm:685,eightMm:561,trocar:7,artiSeal:44},overseasDetail:{LMJ:1454,LMG:2384,LMUS:"미수신"},lmusNote:"LMUS 재고: 추후 수령 예정"},arTrend:[{m:"9월",rate:91.2,overdue:85},{m:"10월",rate:89.3,overdue:92},{m:"11월",rate:88.5,overdue:99}],invTrend:[{m:"9월",dom:1350,ovs:3920},{m:"10월",dom:1320,ovs:3870},{m:"11월",dom:1297,ovs:3838}],forecast:[{m:"1월",fcQty:10275,ti:1},{m:"2월",fcQty:10648,ti:2},{m:"3월",fcQty:12785,ti:3}]}};
 const fallbackQuarterly={"FY25-Q3":{label:"FY2025 3Q 확정 (2025.07~09)",updated:"2025.11.14",plTrend:[{q:"24.4Q",rev:95.8,opLoss:-62.6},{q:"25.1Q",rev:97.3,opLoss:-66.6},{q:"25.2Q",rev:114.1,opLoss:-54.3},{q:"25.3Q",rev:134.4,opLoss:-45.5}],cumRevenue:441.6,cumOpLoss:-229.0,entities:[{name:"LMUS (미국)",rev:"26.2억",gp:"7.3억",sga:"85.8억",opLoss:"△78.5억",share:"70%"},{name:"LMG (독일)",rev:"6.4억",gp:"3.2억",sga:"24.2억",opLoss:"△21.1억",share:"19%"},{name:"LMJ (일본)",rev:"3.0억",gp:"1.0억",sga:"14.0억",opLoss:"△13.1억",share:"12%"}],bs:{totalAssets:743.6,equity:535.9,currentAssets:514.1,currentLiabilities:146.3,totalDebt:207.8,currentRatio:351.5,debtRatio:38.8},cashTrend:[{q:"FY25 1Q",cash:180,net:120},{q:"2Q",cash:165,net:108},{q:"3Q",cash:148,net:95},{q:"4Q(IPO)",cash:1297,net:1267},{q:"FY26 1Q",cash:1201,net:1171}],ipoFunds:[{label:"연구개발비",plan:120,used:28},{label:"해외시장 개척",plan:80,used:15},{label:"운영자금",plan:60,used:22},{label:"시설투자",plan:40,used:5}]}};
 
-// ╔══════════════════════════════════════════╗
-// ║  GOOGLE SHEETS FETCH + CSV → STORE       ║
-// ╚══════════════════════════════════════════╝
+// ╔══════════════════════════════════════════════════════════════════════════╗
+// ║  GOOGLE SHEETS FETCH + CSV → STORE                                       ║
+// ╚══════════════════════════════════════════════════════════════════════════╝
 const csvUrl=(id,sheet)=>`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
 const pN=v=>{if(v==null||v==="")return 0;const n=parseFloat(String(v).replace(/,/g,""));return isNaN(n)?0:n;};
 const pNNull=v=>(v==null||v==="")?null:pN(v);
@@ -51,13 +53,13 @@ async function fetchSheet(sheetId,sheetName){
   return parsed.data;
 }
 
-// ── v5.0: 48컬럼 새 스키마 대응 ──
+// ── v5.0.3: 50컬럼 스키마 (days_in_week + ovs_ship_source 추가) ──
 function csvToWeeklyShipments(rows){
   const store={};
   for(const r of rows){
     const k=(r.week_key||"").trim();if(!k)continue;
     const mi=pN(r.month_index);
-    store[k]={label:r.week_label||k,updated:r.updated||"",monthIndex:mi,
+    store[k]={label:r.week_label||k,updated:r.updated||"",monthIndex:mi,daysInWeek:pN(r.days_in_week)||7,
       orders:{
         domDealer:{w:{AS:pN(r.dom_ord_dealer_w_AS),Seal:pN(r.dom_ord_dealer_w_Seal)},m:{AS:pN(r.dom_ord_dealer_m_AS),Seal:pN(r.dom_ord_dealer_m_Seal)}},
         domDirect:{w:{AS:pN(r.dom_ord_direct_w_AS),Seal:pN(r.dom_ord_direct_w_Seal)},m:{AS:pN(r.dom_ord_direct_m_AS),Seal:pN(r.dom_ord_direct_m_Seal)}},
@@ -84,15 +86,13 @@ function mergeTreasury(store,rows){
     const wkShort=k.replace(/^\d{4}[\.\-]/,"");
     flowHist.push({wk:wkShort,flow:wf});
     const trend=flowHist.slice(-4);
-    if(!store[k])store[k]={label:r.week_label||k,updated:r.updated||"",monthIndex:0,orders:{domDealer:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},domDirect:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},ovsDist:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}}},shipments:{domDealer:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},domDirect:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:0,Seal:0},country:{w_us:0,w_de:0,w_jp:0,m_us:0,m_de:0,m_jp:0}},ovsDist:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}}},inmarket:{w:{us:0,de:0,jp:0},m:{us:0,de:0,jp:0}}};
+    if(!store[k])store[k]={label:r.week_label||k,updated:r.updated||"",monthIndex:0,daysInWeek:7,orders:{domDealer:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},domDirect:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},ovsDist:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}}},shipments:{domDealer:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},domDirect:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:0,Seal:0},country:{w_us:0,w_de:0,w_jp:0,m_us:0,m_de:0,m_jp:0}},ovsDist:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}}},inmarket:{w:{us:0,de:0,jp:0},m:{us:0,de:0,jp:0}}};
     store[k].treasury={cashBalance:pN(r.cash_balance),deposits:pN(r.deposits),elb:pN(r.elb),foreignCurrency:pN(r.foreign_currency),borrowings:pN(r.borrowings),netCash:pN(r.net_cash),weeklyFlow:wf,prevFlow:flowHist.length>=2?flowHist[flowHist.length-2].flow:0,runway:pN(r.runway),monthlyNetFlow:pNNull(r.monthly_net_flow),trend:[...trend],
       cfInSales:pNNull(r.cf_in_sales),cfInOther:pNNull(r.cf_in_other),cfOutLabor:pNNull(r.cf_out_labor),cfOutMaterial:pNNull(r.cf_out_material),cfOutOpex:pNNull(r.cf_out_opex),cfInvest:pNNull(r.cf_invest)};
     if(r.updated)store[k].updated=r.updated;
   }
   return store;
 }
-
-// mergeBackorder — 삭제 (v5.0: 백오더 섹션 제거)
 
 function csvToMonthly(plRows,subRows){
   const store={};
@@ -157,9 +157,9 @@ function csvToQuarterly(rows){
   return store;
 }
 
-// ╔═══════════════════════════╗
-// ║  STYLE + COMPONENTS       ║
-// ╚═══════════════════════════╝
+// ╔═══════════════════════════════════╗
+// ║  STYLE + COMPONENTS               ║
+// ╚═══════════════════════════════════╝
 const C={bg:"#0a0f1a",card:"#111827",border:"#1e293b",text:"#e2e8f0",textMuted:"#94a3b8",textDim:"#64748b",accent:"#3b82f6",green:"#10b981",greenBg:"rgba(16,185,129,0.1)",red:"#ef4444",redBg:"rgba(239,68,68,0.1)",amber:"#f59e0b",amberBg:"rgba(245,158,11,0.1)",purple:"#a78bfa",weekly:"#10b981",monthly:"#3b82f6",quarterly:"#a78bfa",up:"#ef4444",down:"#3b82f6"};
 const fmt=n=>n==null?"—":n.toLocaleString();
 const fmtBn=n=>n==null?"—":(n/100).toFixed(1)+"억";
@@ -184,25 +184,34 @@ const PeriodNav=({keys,current,onChange,colorActive,labels,isMobile})=>(<div sty
 const CC={dlrAS:"#3b82f6",dirAS:"#f97316",dlrVS:"#8b5cf6",dirVS:"#14b8a6",corpAS:"#10b981",distAS:"#f43f5e",corpVS:"#eab308",distVS:"#6366f1",imUS:"#ef4444",imDE:"#3b82f6",imJP:"#f59e0b"};
 const shipRow2=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
-// ╔═══════════════════════════════╗
-// ║  WEEKLY TAB — v5.0 전면 개편    ║
-// ╚═══════════════════════════════╝
+// ╔═══════════════════════════════════════╗
+// ║  WEEKLY TAB — v5.0.3 신규칙 + 일평균   ║
+// ╚═══════════════════════════════════════╝
 function WeeklyTab({weekKey,WS,isMobile}){
   const W=WS[weekKey];if(!W)return<NoData msg="해당 주차 데이터가 없습니다."/>;
   const mi=W.monthIndex,ord=W.orders,sh=W.shipments,im=W.inmarket,tr=W.treasury;
+  const days=W.daysInWeek||7;
   const wKeys=Object.keys(WS).sort(),wIdx=wKeys.indexOf(weekKey);
   const prevW=wIdx>0?WS[wKeys[wIdx-1]]:null;
+  const prevDays=prevW?.daysInWeek||7;
   const dT=getTT("domestic",mi),oT=getTT("overseas",mi);
+  // v5.0.2: 채널별 목표
+  const dlrAS=Targets.qty.domDealer?.ArtiSential?.[mi]||0,dlrVS=Targets.qty.domDealer?.ArtiSeal?.[mi]||0;
+  const dirAS=Targets.qty.domDirect?.ArtiSential?.[mi]||0,dirVS=Targets.qty.domDirect?.ArtiSeal?.[mi]||0;
+  const dlrT=dlrAS+dlrVS,dirT=dirAS+dirVS;
   const dAS=Targets.qty.domestic.ArtiSential[mi]||0,dVS=Targets.qty.domestic.ArtiSeal[mi]||0;
   const oAS=Targets.qty.overseas.ArtiSential[mi]||0,oVS=Targets.qty.overseas.ArtiSeal[mi]||0;
   const domOrdW=sum2(ord.domDealer.w)+sum2(ord.domDirect.w),domOrdM=sum2(ord.domDealer.m)+sum2(ord.domDirect.m);
   const ovsOrdW=sum2(ord.ovsCorp.w)+sum2(ord.ovsDist.w),ovsOrdM=sum2(ord.ovsCorp.m)+sum2(ord.ovsDist.m);
   const domShipW=sum2(sh.domDealer.w)+sum2(sh.domDirect.w),domShipM=sum2(sh.domDealer.m)+sum2(sh.domDirect.m);
   const ovsShipW=sum2(sh.ovsCorp.w)+sum2(sh.ovsDist.w),ovsShipM=sum2(sh.ovsCorp.m)+sum2(sh.ovsDist.m);
+  // v5.0.3: 일평균 WoW
   const pDOW=prevW?sum2(prevW.orders.domDealer.w)+sum2(prevW.orders.domDirect.w):null;
   const pOOW=prevW?sum2(prevW.orders.ovsCorp.w)+sum2(prevW.orders.ovsDist.w):null;
   const pDSW=prevW?sum2(prevW.shipments.domDealer.w)+sum2(prevW.shipments.domDirect.w):null;
   const pOSW=prevW?sum2(prevW.shipments.ovsCorp.w)+sum2(prevW.shipments.ovsDist.w):null;
+  const dailyAvg=(val,d)=>d>0?(val/d):0;
+  const wowDaily=(cur,curD,prev,prevD)=>{if(prev==null||prevD===0)return null;const ca=dailyAvg(cur,curD),pa=dailyAvg(prev,prevD);return Math.round(ca-pa);};
   const chTbl=(data,tAS,tVS)=><DT compact headers={["품목","금주(대)","월누적(대)","월목표(대)","달성률"]} rows={[shipRow2("ArtiSential",data.w.AS,data.m.AS,tAS),shipRow2("ArtiSeal",data.w.Seal,data.m.Seal,tVS),[{v:"합계",bold:true},{v:fmt(sum2(data.w)),bold:true},{v:fmt(sum2(data.m)),bold:true},{v:fmt((tAS||0)+(tVS||0)),bold:true},{v:pctStr(sum2(data.m),(tAS||0)+(tVS||0)),color:pctClr(sum2(data.m),(tAS||0)+(tVS||0)),bold:true}]]}/>;
   const t8=wKeys.slice(Math.max(0,wIdx-7),wIdx+1);
   const mkT=(fn)=>t8.map(k=>({wk:k.replace(/^\d{4}[\.\-]/,""),...fn(WS[k])}));
@@ -212,14 +221,13 @@ function WeeklyTab({weekKey,WS,isMobile}){
   const ovsShipT=mkT(w=>({"지사국 AS":w?.shipments?.ovsCorp?.w?.AS||0,"대리점국 AS":w?.shipments?.ovsDist?.w?.AS||0,"지사국 VS":w?.shipments?.ovsCorp?.w?.Seal||0,"대리점국 VS":w?.shipments?.ovsDist?.w?.Seal||0}));
   const imT=mkT(w=>({"미국":w?.inmarket?.w?.us||0,"독일":w?.inmarket?.w?.de||0,"일본":w?.inmarket?.w?.jp||0}));
   const corpShipCountryT=mkT(w=>({"미국":w?.shipments?.ovsCorp?.country?.w_us||0,"독일":w?.shipments?.ovsCorp?.country?.w_de||0,"일본":w?.shipments?.ovsCorp?.country?.w_jp||0}));
-  // 스택 바 (함수 호출, React 컴포넌트 아님 — 리렌더 이슈 방지)
   const stk2=(data,k1,k2,c1,c2,label)=>{if(data.length<2)return null;return(<div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{label}</div><div style={{height:200}}><ResponsiveContainer><BarChart data={data} barSize={22} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/><Legend wrapperStyle={{fontSize:9}}/><Bar dataKey={k1} stackId="s" fill={c1} name={k1}/><Bar dataKey={k2} stackId="s" fill={c2} radius={[3,3,0,0]} name={k2}/></BarChart></ResponsiveContainer></div></div>);};
   const stk3=(data,label)=>{if(data.length<2)return null;return(<div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{label}</div><div style={{height:200}}><ResponsiveContainer><BarChart data={data} barSize={22} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="wk" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/><Legend wrapperStyle={{fontSize:9}}/><Bar dataKey="미국" stackId="s" fill={CC.imUS}/><Bar dataKey="독일" stackId="s" fill={CC.imDE}/><Bar dataKey="일본" stackId="s" fill={CC.imJP} radius={[3,3,0,0]}/></BarChart></ResponsiveContainer></div></div>);};
-  // 자금
   const cashTD=wKeys.slice(Math.max(0,wIdx-5),wIdx+1).map(k=>{const t=WS[k]?.treasury;return{wk:k.replace(/^\d{4}[\.\-]/,""),flow:t?.weeklyFlow||0,netCash:t?.netCash||0};});
   const mCumFlow=wKeys.filter(k=>WS[k]?.monthIndex===mi&&k<=weekKey).reduce((s,k)=>s+(WS[k]?.treasury?.weeklyFlow||0),0);
   const mBurn=(tr&&tr.runway>0)?Math.round(tr.netCash/tr.runway):null;
   const cc=sh.ovsCorp.country||{w_us:0,w_de:0,w_jp:0,m_us:0,m_de:0,m_jp:0};
+  const isSeam=days<7;
 
   return(<div>
     <TabIntro color={C.green} icon="📡" title="Weekly — 주간 운영 현황">
@@ -227,37 +235,38 @@ function WeeklyTab({weekKey,WS,isMobile}){
       핵심 질문: <strong style={{color:C.text}}>"수주는 들어오고 있는가? 출하는 이루어지고 있는가? 현금 흐름은 안정적인가?"</strong><br/>
       A1(국내 수주/출하) → A2(해외 수주/출하/인마켓) → A3(자금). 국내는 대리점·직판, 해외는 지사국·대리점국으로 구분합니다.
     </TabIntro>
-    {/* Summary Cards */}
+    {isSeam&&<div style={{padding:"8px 12px",marginBottom:12,borderRadius:6,background:C.amberBg,border:`1px solid ${C.amber}33`,fontSize:11,color:C.amber}}>⚠ 이 주차는 월초/월말 이음새 주차({days}일)입니다. 집계 일수가 적어 절대값이 작고, 달성률 변동이 클 수 있습니다.</div>}
+    {/* Summary Cards — v5.0.3: 일평균 WoW + 미니 달성률 바 */}
     <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:isMobile?8:10,marginBottom:14}}>
-      {[{label:"국내 수주",val:domOrdW,prev:pDOW},{label:"해외 수주",val:ovsOrdW,prev:pOOW},{label:"국내 출하",val:domShipW,prev:pDSW},{label:"해외 출하",val:ovsShipW,prev:pOSW}].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}><div style={{fontSize:10,color:C.textDim}}>{c.label}</div><div style={{fontSize:20,fontWeight:700}}>{fmt(c.val)}<span style={{fontSize:11,color:C.textMuted,marginLeft:2}}>대</span></div>{c.prev!=null&&<div style={{fontSize:10,color:c.val>=c.prev?C.up:C.down}}>{c.val>=c.prev?"▲":"▼"} {fmt(Math.abs(c.val-c.prev))} vs 전주</div>}</Card>))}
+      {[{label:"국내 수주",val:domOrdW,mVal:domOrdM,mTgt:dT,wow:wowDaily(domOrdW,days,pDOW,prevDays)},{label:"해외 수주",val:ovsOrdW,mVal:ovsOrdM,mTgt:oT,wow:wowDaily(ovsOrdW,days,pOOW,prevDays)},{label:"국내 출하",val:domShipW,mVal:domShipM,mTgt:dT,wow:wowDaily(domShipW,days,pDSW,prevDays)},{label:"해외 출하",val:ovsShipW,mVal:ovsShipM,mTgt:oT,wow:wowDaily(ovsShipW,days,pOSW,prevDays)}].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}><div style={{fontSize:10,color:C.textDim}}>{c.label}</div><div style={{fontSize:20,fontWeight:700}}>{fmt(c.val)}<span style={{fontSize:11,color:C.textMuted,marginLeft:2}}>대</span><span style={{fontSize:9,color:C.textDim,marginLeft:2}}>({days}일)</span></div>{c.wow!=null&&<div style={{fontSize:10,color:c.wow>=0?C.up:C.down}}>{c.wow>=0?"▲":"▼"} {fmt(Math.abs(c.wow))}/일 vs 전주</div>}<div style={{marginTop:6,padding:"0 4px"}}><ProgressBar value={c.mVal} max={c.mTgt} label={`${fmt(c.mVal)}/${fmt(c.mTgt)}`} height={4}/></div></Card>))}
     </div>
 
     {/* ═══ A1-1. 국내 수주 현황 ═══ */}
-    <Card><SH icon="📋" title="A1-1. 국내 수주 현황" badge={<Badge color="green">매주 금~목</Badge>} desc="ERP 수주상세조회 기준. DSA(일반)=대리점, DSAB(수탁)=직판. 월목표는 대리점+직판 합산 국내 사업계획 기준(채널별 분리 목표는 추후 반영 예정)."/>
+    <Card><SH icon="📋" title="A1-1. 국내 수주 현황" badge={<Badge color="green">매주 금~목</Badge>} desc="ERP 수주상세조회 기준. DSA(일반)=대리점, DSAB(수탁)=직판. 채널별 월목표는 2026년 사업계획 기준."/>
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
-        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📍 대리점 (DSA)</div>{chTbl(ord.domDealer,dAS,dVS)}</div>
-        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🏥 직판 (DSAB)</div>{chTbl(ord.domDirect,null,null)}</div>
+        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📍 대리점 (DSA) <span style={{fontSize:10,fontWeight:400,color:C.textDim}}>— 월목표 {fmt(dlrT)}대</span></div>{chTbl(ord.domDealer,dlrAS,dlrVS)}<div style={{marginTop:6}}><ProgressBar value={sum2(ord.domDealer.m)} max={dlrT} label={`대리점 수주 달성률 — ${fmt(sum2(ord.domDealer.m))} / ${fmt(dlrT)}`} height={6}/></div></div>
+        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🏥 직판 (DSAB) <span style={{fontSize:10,fontWeight:400,color:C.textDim}}>— 월목표 {fmt(dirT)}대</span></div>{chTbl(ord.domDirect,dirAS,dirVS)}<div style={{marginTop:6}}><ProgressBar value={sum2(ord.domDirect.m)} max={dirT} label={`직판 수주 달성률 — ${fmt(sum2(ord.domDirect.m))} / ${fmt(dirT)}`} height={6}/></div></div>
       </div>
       <div style={{marginTop:10}}><ProgressBar value={domOrdM} max={dT} label={`국내 수주 통합 (대리점+직판) — ${fmt(domOrdM)} / ${fmt(dT)}`} height={8}/></div>
       <div style={{marginTop:16,display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
         {stk2(domOrdT,"대리점 AS","직판 AS",CC.dlrAS,CC.dirAS,"📈 국내 수주 추이 — ArtiSential (8주)")}
         {stk2(domOrdT,"대리점 VS","직판 VS",CC.dlrVS,CC.dirVS,"📈 국내 수주 추이 — ArtiSeal (8주)")}
       </div>
-      <Fn>※ PO 접수 기준. A-prefix=ArtiSential, V-prefix=ArtiSeal (T/K/G 제외). 반품(RRCE/RREF)은 원 주문처 기준 마이너스. 국내 수주는 월말 집중 경향으로 1~2주차 수치가 낮은 것은 정상 패턴.</Fn>
+      <Fn>※ PO 접수 기준. A-prefix=ArtiSential, V-prefix=ArtiSeal (T/K/G 제외). 반품(RRCE/RREF)은 원 주문처 기준 마이너스. 국내 수주는 월말 집중 경향으로 1~2주차 수치가 낮은 것은 정상 패턴.{isSeam?" 이음새 주차는 집계 일수가 적어 달성률 변동이 클 수 있습니다.":""}</Fn>
     </Card>
 
     {/* ═══ A1-2. 국내 출하 현황 ═══ */}
-    <Card><SH icon="📦" title="A1-2. 국내 출하 현황" badge={<Badge color="green">매주 금~목</Badge>} desc="ERP 출고수량 기준. 대리점 출하 = 본사→대리점 출고(매출 인식 시점). 직판 출하 = 가납창고(병원 위탁 보관) 이동이며 실매출은 개봉 시점에 인식(출하 ≠ 매출)."/>
+    <Card><SH icon="📦" title="A1-2. 국내 출하 현황" badge={<Badge color="green">매주 금~목</Badge>} desc="ERP 출고수량 기준. 대리점 출하 = 본사→대리점 출고(매출 인식 시점). 직판 출하 = 가납창고(병원 위탁 보관) 이동이며 실매출은 개봉 시점에 인식(출하 ≠ 매출). 채널별 월목표는 2026년 사업계획 기준."/>
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
-        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📍 대리점 <Badge color="green">출하=매출</Badge></div>{chTbl(sh.domDealer,dAS,dVS)}</div>
-        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🏥 직판 <Badge color="amber">가납출하≠매출</Badge></div>{chTbl(sh.domDirect,null,null)}</div>
+        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📍 대리점 <Badge color="green">출하=매출</Badge> <span style={{fontSize:10,fontWeight:400,color:C.textDim}}>— 월목표 {fmt(dlrT)}대</span></div>{chTbl(sh.domDealer,dlrAS,dlrVS)}<div style={{marginTop:6}}><ProgressBar value={sum2(sh.domDealer.m)} max={dlrT} label={`대리점 출하 달성률 — ${fmt(sum2(sh.domDealer.m))} / ${fmt(dlrT)}`} height={6}/></div></div>
+        <div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>🏥 직판 <Badge color="amber">가납출하≠매출</Badge> <span style={{fontSize:10,fontWeight:400,color:C.textDim}}>— 월목표 {fmt(dirT)}대</span></div>{chTbl(sh.domDirect,dirAS,dirVS)}<div style={{marginTop:6}}><ProgressBar value={sum2(sh.domDirect.m)} max={dirT} label={`직판 출하 달성률 — ${fmt(sum2(sh.domDirect.m))} / ${fmt(dirT)}`} height={6}/></div></div>
       </div>
       <div style={{marginTop:10}}><ProgressBar value={domShipM} max={dT} label={`국내 출하 통합 — ${fmt(domShipM)} / ${fmt(dT)}`} height={8}/></div>
       <div style={{marginTop:16,display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
         {stk2(domShipT,"대리점 AS","직판 AS",CC.dlrAS,CC.dirAS,"📈 국내 출하 추이 — ArtiSential (8주)")}
         {stk2(domShipT,"대리점 VS","직판 VS",CC.dlrVS,CC.dirVS,"📈 국내 출하 추이 — ArtiSeal (8주)")}
       </div>
-      <Fn>※ 직판 거래처: 분당서울대병원, 드림종합병원, 케어캠프, 에비슨케어 등. 직판 출하는 가납창고 이동 시점 집계(실사용 시 매출 인식). 대리점 출하는 매출 인식과 일치.</Fn>
+      <Fn>※ 직판 거래처: 분당서울대병원, 드림종합병원, 케어캠프, 에비슨케어 등. 직판 출하는 가납창고 이동 시점 집계(실사용 시 매출 인식). 대리점 출하는 매출 인식과 일치.{isSeam?" 이음새 주차는 집계 일수가 적어 달성률 변동이 클 수 있습니다.":""}</Fn>
     </Card>
 
     {/* ═══ A2-1. 해외 수주 현황 ═══ */}
@@ -320,10 +329,10 @@ function WeeklyTab({weekKey,WS,isMobile}){
       <div style={{marginTop:16}}>
         {stk3(imT,"📈 인마켓 추이 — 미국/독일/일본 (8주, AS+VS 합산)")}
       </div>
-      <Fn>※ 해외사업실 주간 보고(담당자_Weekly_In-Market) 기반. AS+VS 합산(제품별 분리 없음). 인마켓 = 지사국 실매출. 대리점국 인마켓은 별도 수집 체계 구축 전까지 미표시.</Fn>
+      <Fn>※ 해외사업실 주간 보고(담당자_Weekly_In-Market) 기반. AS+VS 합산(제품별 분리 없음). 인마켓 = 지사국 실매출. 대리점국 인마켓은 별도 수집 체계 구축 전까지 미표시. 인마켓은 해외사업실 주간 합산 기준이며, 월 경계 주차에서 미세한 차이가 발생할 수 있습니다.</Fn>
     </Card>
 
-    {/* ═══ A3. 자금 현황 (v4.12 완전 복원) ═══ */}
+    {/* ═══ A3. 자금 현황 ═══ */}
     <Card><SH icon="💰" title="A3. 자금 현황" badge={<Badge color="green">매주 월요일</Badge>} desc="재무본부 자금팀이 매주 월요일 보고하는 회사 전체 자금 포지션. Net Cash 추이로 현금 소진 속도(Burn Rate)를, Runway로 현재 현금으로 몇 개월 운영 가능한지를 판단합니다."/>
       {tr&&<>
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?10:14,marginBottom:14}}>
@@ -367,7 +376,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
         </div>);
       })()}
       </>}
-      <Fn>※ 재무본부 주간 자금보고 기준. Gross Cash = 보통예금+정기예금+ELB+외화. Net Cash = 총잔고−차입금. 당월 누적 흐름 = 해당 월 주간흐름 합산. 월평균 Burn Rate = Net Cash ÷ Runway. Runway = Net Cash ÷ 최근 3개월 월평균 순유출. ELB = 주가연계파생결합사채, 차입금 = IBK 기업은행.</Fn>
+      <Fn>※ 재무본부 주간 자금보고 기준. Gross Cash = 보통예금+정기예금+ELB+외화. Net Cash = 총잔고−차입금. 당월 누적 흐름 = 해당 월 주간흐름 합산. 월평균 Burn Rate = Net Cash ÷ Runway. Runway = Net Cash ÷ 최근 3개월 월평균 순유출. ELB = 주가연계파생결합사채, 차입금 = IBK 기업은행. 자금 데이터는 자금팀 자체 주기(월~금) 기준이며, 수주/출하 주기(금~목)와 며칠 차이가 있을 수 있습니다.</Fn>
     </Card>
   </div>);
 }
@@ -475,27 +484,22 @@ function QuarterlyTab({qKey,QS,isMobile}){
   return(<div>
     <TabIntro color={C.purple} icon="🏛️" title="Quarterly — 분기 확정 실적">분기 결산 확정 후 산출되는 <strong style={{color:C.text}}>확정 재무제표</strong> 기반 지표입니다.</TabIntro>
     <div style={{padding:"8px 12px",marginBottom:14,borderRadius:6,background:"rgba(167,139,250,0.08)",border:`1px solid ${C.purple}33`,fontSize:11,color:C.purple}}>ⓘ <strong>{Q.label}</strong> · 갱신: {Q.updated}</div>
-    {/* C1 */}
     <Card><SH icon="📊" title="C1. 분기별 실적 추이" badge={<Badge color="purple">분기 확정</Badge>}/>
       <div style={{height:260}}><ResponsiveContainer><ComposedChart data={c1Data} margin={{top:10,right:40,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="q" tick={{fontSize:11,fill:"#cbd5e1"}} axisLine={false}/><YAxis yAxisId="left" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} unit="억"/><YAxis yAxisId="right" orientation="right" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} unit="%"/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}}/><Legend wrapperStyle={{fontSize:11}}/><Bar yAxisId="left" dataKey="target" fill="#475569" opacity={0.35} radius={[4,4,0,0]} name="분기목표"/><Bar yAxisId="left" dataKey="rev" fill={C.accent} radius={[4,4,0,0]} name="매출"/><Bar yAxisId="left" dataKey="opLoss" fill={C.red} opacity={0.6} radius={[4,4,0,0]} name="영업손실"/><Line yAxisId="right" type="monotone" dataKey="cumPct" stroke="#fbbf24" strokeWidth={2} strokeDasharray="5 3" dot={{r:4,fill:"#fbbf24"}} name="누적달성률"/></ComposedChart></ResponsiveContainer></div>
       <InfoBox color={C.purple}>누적 매출 {Q.cumRevenue}억 (연간 목표 {annualTarget.toFixed(0)}억의 {Q.cumRevenue>0?(Q.cumRevenue/annualTarget*100).toFixed(1):"0"}%)</InfoBox>
       <ProgressBar value={Q.cumRevenue} max={annualTarget} label={`연간 매출 달성률 (${Q.cumRevenue}억 / ${annualTarget.toFixed(0)}억)`} height={8}/>
     </Card>
-    {/* C2 */}
     <Card><SH icon="🌍" title="C2. 해외법인별 실적" badge={<Badge color="purple">분기 확정</Badge>}/>
       <DT headers={["법인","매출(억원)","GP(억원)","판관비(억원)","영업손실(억원)","비중"]} rows={Q.entities.map((e,i)=>[e.name,e.rev,e.gp,e.sga,{v:e.opLoss,color:C.down},{v:e.share,color:i===0?C.red:C.amber,bold:true}])}/>
     </Card>
-    {/* C3 */}
     <Card><SH icon="🏦" title="C3. 재무 건전성" badge={<Badge color="purple">분기 확정</Badge>}/>
       <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:12}}>
         {[{l:"유동비율",v:Q.bs.currentRatio,u:"%",c:C.green},{l:"부채비율",v:Q.bs.debtRatio,u:"%",c:C.green},{l:"총자산",v:Q.bs.totalAssets,u:"억"},{l:"순자산(자본)",v:Q.bs.equity,u:"억"}].map((x,i)=>(<div key={i} style={{padding:8,background:"rgba(255,255,255,0.02)",borderRadius:6}}><Metric label={x.l} value={x.v} unit={x.u} color={x.c}/></div>))}
       </div>
     </Card>
-    {/* C4 */}
     <Card><SH icon="📉" title="C4. 현금성자산 추이" badge={<Badge color="purple">분기 확정</Badge>}/>
       <div style={{height:200}}><ResponsiveContainer><LineChart data={Q.cashTrend} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="q" tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} unit="억"/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${v}억`]}/><Legend wrapperStyle={{fontSize:9}}/><Line type="monotone" dataKey="net" stroke="#34d399" strokeWidth={2.5} dot={{r:4,fill:"#34d399"}} name="가용순현금"/><Line type="monotone" dataKey="cash" stroke="#60a5fa" strokeWidth={1.5} dot={{r:3,fill:"#60a5fa"}} strokeDasharray="4 2" name="현금성자산"/></LineChart></ResponsiveContainer></div>
     </Card>
-    {/* C5 */}
     <Card style={{marginBottom:0}}><SH icon="💵" title="C5. IPO 공모자금 사용" badge={<Badge color="purple">분기 확정</Badge>}/>
       {Q.ipoFunds.map((f,i)=>{const colors=[C.accent,C.green,C.amber,C.purple];return(<div key={i} style={{marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",fontSize:10,marginBottom:3}}><span style={{color:C.textMuted}}>{f.label}</span><span style={{color:C.text,fontWeight:600}}>{f.used}/{f.plan}억 ({((f.used/f.plan)*100).toFixed(0)}%)</span></div><div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.05)",overflow:"hidden"}}><div style={{height:"100%",width:`${(f.used/f.plan)*100}%`,borderRadius:3,background:colors[i]}}/></div></div>);})}
       <div style={{marginTop:8,padding:"6px 10px",background:C.amberBg,borderRadius:4,fontSize:10,color:C.amber}}>⏳ 재무본부 추적표 연동 예정 (현재 하드코딩)</div>
@@ -535,7 +539,6 @@ function Dashboard(){
       let ws={};
       try{const d=await fetchSheet(sheetId,"Weekly_Shipments");ws=csvToWeeklyShipments(d);}catch(e){errors.push("Shipments: "+e.message);}
       try{const d=await fetchSheet(sheetId,"Weekly_Treasury");ws=mergeTreasury(ws,d);}catch(e){errors.push("Treasury: "+e.message);}
-      // v5.0: Weekly_Backorder fetch 제거
       if(Object.keys(ws).length>0)setWS(ws);
 
       try{
@@ -563,7 +566,7 @@ function Dashboard(){
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <style>{`*::-webkit-scrollbar{height:3px}*::-webkit-scrollbar-track{background:transparent}*::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}@media(max-width:767px){.lm-card{padding:12px !important}table th,table td{padding:4px 5px !important;font-size:10px !important}}`}</style>
     <div style={{padding:isMobile?"12px 14px":"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:isMobile?8:10}}>
-      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
+      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.3</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
       <div style={{display:"flex",gap:isMobile?6:8,alignItems:"center",flexWrap:"wrap",width:isMobile?"100%":undefined,justifyContent:isMobile?"space-between":undefined}}>
         {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:6,height:6,borderRadius:"50%",background:statusColor,display:"inline-block"}}/><span style={{fontSize:10,color:statusColor}}>{syncStatus.time?`${syncStatus.time}`:""} {syncStatus.msg}</span></div>}
         <button onClick={()=>setShowSettings(p=>!p)} style={{padding:isMobile?"6px 10px":"6px 12px",borderRadius:6,border:`1px solid ${showSettings?C.accent:C.border}`,background:showSettings?"rgba(59,130,246,0.15)":"transparent",color:showSettings?C.accent:C.textMuted,cursor:"pointer",fontSize:11,fontWeight:600}}>⚙️{isMobile?"":" 설정"}</button>
