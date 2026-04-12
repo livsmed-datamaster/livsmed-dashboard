@@ -16,7 +16,7 @@ function useIsMobile(breakpoint=768){
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v5.0.5 — 반품각주 + FC표시 + 인마켓각주    ║
+// ║  LIVSMED Executive Dashboard v5.0.6 — B3 국내 판매유형 구분 추가        ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 const DASHBOARD_PASSWORD = "livsmed1000jo";
@@ -110,7 +110,7 @@ function csvToMonthly(plRows,subRows){
     const regions=regThisMonth.map(rg=>{const hist=allRegData[rg.name]||[];const d=hist.slice(-3);while(d.length<3)d.unshift({m:"—",v:0});return{name:rg.name,data:d,target:rg.target,color:regColors[rg.name]||"#888"};});
     const prevKey=sortedPL.find(x=>String(x.month_key||"").trim()<k);
     store[k]={label:r.month_label||k,updated:r.updated||"",monthIndex:mi,
-      revenue:{actual:pN(r.rev_actual),plan:pN(r.rev_plan),prev:prevKey?pN(prevKey.rev_actual):null,domActual:pN(r.rev_dom),ovsActual:pN(r.rev_ovs)},
+      revenue:{actual:pN(r.rev_actual),plan:pN(r.rev_plan),prev:prevKey?pN(prevKey.rev_actual):null,domActual:pN(r.rev_dom),ovsActual:pN(r.rev_ovs),domDealer:pNNull(r.rev_dom_dealer),domDirect:pNNull(r.rev_dom_direct)},
       pl:{cogs:pN(r.cogs),grossProfit:pN(r.gross_profit),grossMarginPct:pN(r.gpm_pct),opLoss:{actual:pN(r.op_loss_actual),plan:pN(r.op_loss_plan)},ebitda:{actual:pN(r.ebitda_actual),plan:pN(r.ebitda_plan)},netLoss:{actual:pN(r.net_loss_actual),plan:pN(r.net_loss_plan)},
         costGroups:[{name:"인건비",actual:pN(r.cost_labor_a),plan:pN(r.cost_labor_p)},{name:"R&D",actual:pN(r.cost_rd_a),plan:pN(r.cost_rd_p)},{name:"영업활동",actual:pN(r.cost_sales_a),plan:pN(r.cost_sales_p)},{name:"해외시장개척",actual:pN(r.cost_overseas_a),plan:pN(r.cost_overseas_p)},{name:"기타",actual:pN(r.cost_other_a),plan:pN(r.cost_other_p)}]},
       qtyActual:{domestic:{ArtiSential:pN(r.qty_dom_AS),ArtiSeal:pN(r.qty_dom_Seal),ArtiStapler:0},overseas:{ArtiSential:pN(r.qty_ovs_AS),ArtiSeal:pN(r.qty_ovs_Seal),ArtiStapler:0}},
@@ -202,7 +202,7 @@ const CC={dlrAS:"#3b82f6",dirAS:"#f97316",dlrVS:"#8b5cf6",dirVS:"#14b8a6",corpAS
 const shipRow2=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
 // ╔═══════════════════════════════════════╗
-// ║  WEEKLY TAB — v5.0.5 반품각주 강화     ║
+// ║  WEEKLY TAB — v5.0.6                ║
 // ╚═══════════════════════════════════════╝
 function WeeklyTab({weekKey,WS,isMobile}){
   const W=WS[weekKey];if(!W)return<NoData msg="해당 주차 데이터가 없습니다."/>;
@@ -397,7 +397,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
   </div>);
 }
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  MONTHLY TAB — v5.0.5: 인마켓각주 + FC표시 + 금액/수량각주  ║
+// ║  MONTHLY TAB — v5.0.6: B3 국내 판매유형 + FC표시 + 인마켓각주         ║
 // ╚══════════════════════════════════════════════════════════════╝
 const shipRow=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
@@ -455,10 +455,32 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
     <Card><SH icon="🎯" title="B1. 목표 대비 매출 실적" badge={<Badge color="blue">월간</Badge>} desc="연결 기준 가결산 매출과 사업계획 목표 대비 달성률."/>
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:12,marginBottom:14}}>
         <div style={{textAlign:"center",padding:isMobile?10:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>연결 매출</div><div style={{fontSize:isMobile?22:26,fontWeight:700}}>{fmtBn(rv.actual)}</div><div style={{fontSize:11,color:C.textDim}}>목표 {fmtBn(Targets.amt.combined[mi])}</div><div style={{fontSize:14,fontWeight:700,color:pctClr(rv.actual,Targets.amt.combined[mi]),marginTop:4}}>달성률 {pctStr(rv.actual,Targets.amt.combined[mi])}</div></div>
-        <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>국내 매출</div><div style={{fontSize:22,fontWeight:700}}>{fmtBn(rv.domActual)}</div><ProgressBar value={rv.domActual} max={Targets.amt.domestic[mi]} label="국내 달성률"/></div>
+        <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>국내 매출</div><div style={{fontSize:22,fontWeight:700}}>{fmtBn(rv.domActual)}</div><ProgressBar value={rv.domActual} max={Targets.amt.domestic[mi]} label="국내 달성률"/>{rv.domDealer!=null&&<div style={{marginTop:6,fontSize:10,color:C.textDim}}>대리점 {fmtBn(rv.domDealer)} · 직판 {fmtBn(rv.domDirect)}</div>}</div>
         <div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>해외 매출</div><div style={{fontSize:22,fontWeight:700}}>{fmtBn(rv.ovsActual)}</div><ProgressBar value={rv.ovsActual} max={Targets.amt.overseas[mi]} label="해외 달성률"/></div>
       </div>
       <div style={{marginBottom:14}}><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:8}}>월별 매출 추이 — 목표(회색) vs 실적(파랑)</div><div style={{height:220}}><ResponsiveContainer><BarChart data={mRevChart} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="m" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false}/><YAxis tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} unit="억"/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}}/><Legend wrapperStyle={{fontSize:10}}/><Bar dataKey="목표" fill="#475569" opacity={0.4} radius={[3,3,0,0]}/><Bar dataKey="실적" fill={C.accent} radius={[3,3,0,0]}/></BarChart></ResponsiveContainer></div></div>
+      {rv.domDealer!=null&&rv.domDirect!=null&&<div style={{padding:"10px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6,marginBottom:10}}>
+        <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:8}}>🏪 국내 판매유형별 매출 (매출원장 기준)</div>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:12}}>
+          <div>
+            <DT compact headers={["판매유형","매출(백만원)","비중"]} rows={[
+              ["📍 대리점",fmt(rv.domDealer),{v:rv.domActual>0?((rv.domDealer/rv.domActual)*100).toFixed(1)+"%":"—",color:C.textMuted}],
+              ["🏥 직판",fmt(rv.domDirect),{v:rv.domActual>0?((rv.domDirect/rv.domActual)*100).toFixed(1)+"%":"—",color:C.textMuted}],
+              [{v:"합계",bold:true},{v:fmt(rv.domDealer+rv.domDirect),bold:true},{v:"100%",bold:true}]
+            ]}/>
+            <Fn>※ 매출원장 판매경로 기준. 대리점=DSA 거래처, 직판=DSAB 거래처(병원 직납+간납). 가결산 국내 매출({fmtBn(rv.domActual)})과 1~2% 이내 차이 가능 (결산 조정분).</Fn>
+          </div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <div style={{width:"100%",maxWidth:200}}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:10,marginBottom:4}}><span style={{color:CC.dlrAS}}>대리점 {rv.domActual>0?((rv.domDealer/rv.domActual)*100).toFixed(0):"—"}%</span><span style={{color:CC.dirAS}}>직판 {rv.domActual>0?((rv.domDirect/rv.domActual)*100).toFixed(0):"—"}%</span></div>
+              <div style={{height:12,borderRadius:6,background:"rgba(255,255,255,0.05)",overflow:"hidden",display:"flex"}}>
+                <div style={{height:"100%",width:`${rv.domActual>0?(rv.domDealer/rv.domActual)*100:0}%`,background:CC.dlrAS,transition:"width 0.6s ease"}}/>
+                <div style={{height:"100%",width:`${rv.domActual>0?(rv.domDirect/rv.domActual)*100:0}%`,background:CC.dirAS,transition:"width 0.6s ease"}}/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>}
       <div style={{padding:"10px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6,marginBottom:10}}><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📊 수량 기준 달성률 (보조지표)</div>
         {hasSplit?(<>
           <DT compact headers={["구분","ArtiSential","ArtiSeal","합계","달성률"]} rows={[["국내",`${fmt(qa.domestic.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi])}`,`${fmt(dQA)}/${fmt(dQT)}`,{v:pctStr(dQA,dQT),color:pctClr(dQA,dQT),bold:true}],["지사국 ⓘ",`${fmt(corpAS)}/${fmt(Targets.qty.ovsCorp.ArtiSential[mi])}`,`${fmt(corpVS)}/${fmt(Targets.qty.ovsCorp.ArtiSeal[mi])}`,`${fmt(corpQA)}/${fmt(corpQT)}`,{v:corpQT>0?pctStr(corpQA,corpQT):"—",color:corpQT>0?pctClr(corpQA,corpQT):C.textMuted,bold:true}],["대리점국",`${fmt(distAS)}/${fmt(Targets.qty.ovsDist.ArtiSential[mi])}`,`${fmt(distVS)}/${fmt(Targets.qty.ovsDist.ArtiSeal[mi])}`,`${fmt(distQA)}/${fmt(distQT)}`,{v:distQT>0?pctStr(distQA,distQT):"—",color:distQT>0?pctClr(distQA,distQT):C.textMuted,bold:true}],[{v:"해외소계",bold:true},fmt(corpAS+distAS)+"/"+fmt(Targets.qty.overseas.ArtiSential[mi]),fmt(corpVS+distVS)+"/"+fmt(Targets.qty.overseas.ArtiSeal[mi]),{v:`${fmt(oQA)}/${fmt(oQT)}`,bold:true},{v:pctStr(oQA,oQT),color:pctClr(oQA,oQT),bold:true}],[{v:"통합",bold:true},`${fmt(qa.domestic.ArtiSential+corpAS+distAS)}/${fmt(Targets.qty.domestic.ArtiSential[mi]+Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal+corpVS+distVS)}/${fmt(Targets.qty.domestic.ArtiSeal[mi]+Targets.qty.overseas.ArtiSeal[mi])}`,{v:`${fmt(tQA)}/${fmt(tQT)}`,bold:true},{v:pctStr(tQA,tQT),color:pctClr(tQA,tQT),bold:true}]]}/>
@@ -656,7 +678,7 @@ function Dashboard(){
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <style>{`*::-webkit-scrollbar{height:3px}*::-webkit-scrollbar-track{background:transparent}*::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}@media(max-width:767px){.lm-card{padding:12px !important}table th,table td{padding:4px 5px !important;font-size:10px !important}}`}</style>
     <div style={{padding:isMobile?"12px 14px":"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:isMobile?8:10}}>
-      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.5</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
+      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.6</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
       <div style={{display:"flex",gap:isMobile?6:8,alignItems:"center",flexWrap:"wrap",width:isMobile?"100%":undefined,justifyContent:isMobile?"space-between":undefined}}>
         {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:6,height:6,borderRadius:"50%",background:statusColor,display:"inline-block"}}/><span style={{fontSize:10,color:statusColor}}>{syncStatus.time?`${syncStatus.time}`:""} {syncStatus.msg}</span></div>}
         <button onClick={()=>setShowSettings(p=>!p)} style={{padding:isMobile?"6px 10px":"6px 12px",borderRadius:6,border:`1px solid ${showSettings?C.accent:C.border}`,background:showSettings?"rgba(59,130,246,0.15)":"transparent",color:showSettings?C.accent:C.textMuted,cursor:"pointer",fontSize:11,fontWeight:600}}>⚙️{isMobile?"":" 설정"}</button>
