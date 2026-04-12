@@ -26,7 +26,9 @@ const Targets={
   qty:{domestic:{ArtiSential:[6685,6595,7465,6356,6434,6899,10521,11701,13379,14059,14828,16267],ArtiSeal:[1310,1490,1730,985,1015,1145,1715,1930,2190,2950,3145,3395],ArtiStapler:[0,0,0,0,0,0,100,100,200,400,600,600]},
     domDealer:{ArtiSential:[5925,5955,6445,5236,5230,5679,9197,10371,12069,12689,13388,14617],ArtiSeal:[1255,1415,1610,735,720,830,1325,1480,1640,2375,2565,2785]},
     domDirect:{ArtiSential:[760,640,1020,1120,1204,1220,1324,1330,1310,1370,1440,1650],ArtiSeal:[55,75,120,250,295,315,390,450,550,575,580,610]},
-    overseas:{ArtiSential:[851,5008,6160,5243,5888,8298,7293,9408,19083,9019,10039,29759],ArtiSeal:[370,845,1235,895,1025,1475,1344,1386,4435,1451,2731,7772],ArtiStapler:[0,0,0,0,0,0,0,0,0,0,0,0]}},
+    overseas:{ArtiSential:[821,5378,7464,5687,6757,10922,6807,9260,16908,8456,8474,29115],ArtiSeal:[377,897,1246,916,1075,1577,1254,1073,4502,1370,2991,7686],ArtiStapler:[0,0,0,0,0,0,0,0,0,0,0,0]},
+    ovsCorp:{ArtiSential:[821,4548,4580,4723,4739,4780,4772,4832,5016,5135,5153,5350],ArtiSeal:[377,866,1153,916,998,1228,991,1073,1303,1014,1148,1397]},
+    ovsDist:{ArtiSential:[0,830,2884,964,2018,6142,2035,4428,11892,3321,3321,23765],ArtiSeal:[0,31,93,0,77,349,263,0,3199,356,1843,6289]}},
   amt:{domestic:[3223,3239,3757,3095,3166,3401,5131,5677,6510,7239,7786,8481],overseas:[568,2753,3500,2875,3231,4546,3987,4902,10776,4758,5921,17201],combined:[3791,5992,7257,5970,6396,7947,9118,10580,17286,11997,13707,25682],
     regions:{us:[335,2311,2345,2312,2345,2345,2312,2345,2345,2312,2379,2443],de:[59,59,237,89,118,296,89,89,232,118,118,262],jp:[173,185,196,244,257,269,309,352,392,436,448,519],other:[0,0,34,0,0,213,265,265,1096,303,303,2420]}}
 };
@@ -134,9 +136,24 @@ function mergeInmarket(store,rows){
   let prev=null;
   for(const r of sorted){
     const k=(r.month_key||"").trim();if(!k||!store[k])continue;
-    const cur={domestic:{direct:pN(r.dom_direct_actual),dealer:pN(r.dom_dealer_actual)},overseas:{us:pN(r.ovs_us_actual),de:pN(r.ovs_de_actual),jp:pN(r.ovs_jp_actual)}};
-    cur.domTotal=cur.domestic.direct+cur.domestic.dealer;cur.ovsTotal=cur.overseas.us+cur.overseas.de+cur.overseas.jp;cur.grandTotal=cur.domTotal+cur.ovsTotal;
-    if(prev){cur.prev={domTotal:prev.domTotal,ovsTotal:prev.ovsTotal,grandTotal:prev.grandTotal,overseas:{us:prev.overseas.us,de:prev.overseas.de,jp:prev.overseas.jp},domestic:{direct:prev.domestic.direct,dealer:prev.domestic.dealer}};}
+    /* AS/VS split columns (new schema) */
+    const hasNew=r.im_us_AS!=null||r.im_de_AS!=null||r.im_jp_AS!=null;
+    const iUS_AS=pN(r.im_us_AS),iUS_VS=pN(r.im_us_VS),iDE_AS=pN(r.im_de_AS),iDE_VS=pN(r.im_de_VS),iJP_AS=pN(r.im_jp_AS),iJP_VS=pN(r.im_jp_VS);
+    const dAS=pN(r.ship_dist_AS),dVS=pN(r.ship_dist_VS);
+    /* backward-compat: fall back to combined columns */
+    const ovsUS=hasNew?iUS_AS+iUS_VS:pN(r.ovs_us_actual);
+    const ovsDE=hasNew?iDE_AS+iDE_VS:pN(r.ovs_de_actual);
+    const ovsJP=hasNew?iJP_AS+iJP_VS:pN(r.ovs_jp_actual);
+    const cur={
+      domestic:{direct:pN(r.dom_direct_actual),dealer:pN(r.dom_dealer_actual)},
+      overseas:{us:ovsUS,de:ovsDE,jp:ovsJP},
+      corp:{AS:iUS_AS+iDE_AS+iJP_AS,Seal:iUS_VS+iDE_VS+iJP_VS,us:{AS:iUS_AS,VS:iUS_VS},de:{AS:iDE_AS,VS:iDE_VS},jp:{AS:iJP_AS,VS:iJP_VS}},
+      dist:{AS:dAS,Seal:dVS}};
+    cur.domTotal=cur.domestic.direct+cur.domestic.dealer;
+    cur.corpTotal=cur.corp.AS+cur.corp.Seal;cur.distTotal=cur.dist.AS+cur.dist.Seal;
+    cur.ovsTotal=cur.overseas.us+cur.overseas.de+cur.overseas.jp;
+    cur.grandTotal=cur.domTotal+cur.ovsTotal;
+    if(prev){cur.prev={domTotal:prev.domTotal,ovsTotal:prev.ovsTotal,grandTotal:prev.grandTotal,corpTotal:prev.corpTotal,distTotal:prev.distTotal,overseas:{us:prev.overseas.us,de:prev.overseas.de,jp:prev.overseas.jp},domestic:{direct:prev.domestic.direct,dealer:prev.domestic.dealer},corp:{AS:prev.corp.AS,Seal:prev.corp.Seal},dist:{AS:prev.dist.AS,Seal:prev.dist.Seal}};}
     store[k].inmarket=cur;prev=cur;
   }
   return store;
@@ -389,7 +406,13 @@ const shipRow=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m
 function MonthlyTab({monthKey,MS,WS,isMobile}){
   const M=MS[monthKey];if(!M)return<NoData msg="해당 월 데이터가 없습니다."/>;
   const mi=M.monthIndex,rv=M.revenue,pl=M.pl,qa=M.qtyActual;
-  const dQA=sumP(qa.domestic),oQA=sumP(qa.overseas),dQT=getTT("domestic",mi),oQT=getTT("overseas",mi);
+  const dQA=sumP(qa.domestic),dQT=getTT("domestic",mi);
+  /* A2: 지사국=인마켓, 대리점국=선적 분리 */
+  const im=M.inmarket,hasSplit=im&&(im.corp?.AS>0||im.corp?.Seal>0||im.dist?.AS>0||im.dist?.Seal>0);
+  const corpAS=im?.corp?.AS||0,corpVS=im?.corp?.Seal||0,corpQA=corpAS+corpVS;
+  const distAS=im?.dist?.AS||0,distVS=im?.dist?.Seal||0,distQA=distAS+distVS;
+  const corpQT=getTT("ovsCorp",mi),distQT=getTT("ovsDist",mi);
+  const oQA=hasSplit?corpQA+distQA:sumP(qa.overseas),oQT=getTT("overseas",mi);
   const tQA=dQA+oQA,tQT=dQT+oQT;
   const tCA=pl.costGroups.reduce((s,g)=>s+g.actual,0);
   const activeCosts=pl.costGroups.filter(g=>g.actual>0);
@@ -413,10 +436,13 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
       </div>
       <div style={{marginBottom:14}}><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:8}}>월별 매출 추이 — 목표(회색) vs 실적(파랑)</div><div style={{height:220}}><ResponsiveContainer><BarChart data={mRevChart} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="m" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false}/><YAxis tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false} unit="억"/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}}/><Legend wrapperStyle={{fontSize:10}}/><Bar dataKey="목표" fill="#475569" opacity={0.4} radius={[3,3,0,0]}/><Bar dataKey="실적" fill={C.accent} radius={[3,3,0,0]}/></BarChart></ResponsiveContainer></div></div>
       <div style={{padding:"10px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6,marginBottom:10}}><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📊 수량 기준 달성률 (보조지표)</div>
-        <DT compact headers={["구분","ArtiSential","ArtiSeal","합계","달성률"]} rows={[["국내",`${fmt(qa.domestic.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi])}`,`${fmt(dQA)}/${fmt(dQT)}`,{v:pctStr(dQA,dQT),color:pctClr(dQA,dQT),bold:true}],["해외",`${fmt(qa.overseas.ArtiSential)}/${fmt(Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.overseas.ArtiSeal)}/${fmt(Targets.qty.overseas.ArtiSeal[mi])}`,`${fmt(oQA)}/${fmt(oQT)}`,{v:pctStr(oQA,oQT),color:pctClr(oQA,oQT),bold:true}],[{v:"통합",bold:true},`${fmt(qa.domestic.ArtiSential+qa.overseas.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi]+Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal+qa.overseas.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi]+Targets.qty.overseas.ArtiSeal[mi])}`,{v:`${fmt(tQA)}/${fmt(tQT)}`,bold:true},{v:pctStr(tQA,tQT),color:pctClr(tQA,tQT),bold:true}]]}/>
+        {hasSplit?(<>
+          <DT compact headers={["구분","ArtiSential","ArtiSeal","합계","달성률"]} rows={[["국내",`${fmt(qa.domestic.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi])}`,`${fmt(dQA)}/${fmt(dQT)}`,{v:pctStr(dQA,dQT),color:pctClr(dQA,dQT),bold:true}],["지사국 ⓘ",`${fmt(corpAS)}/${fmt(Targets.qty.ovsCorp.ArtiSential[mi])}`,`${fmt(corpVS)}/${fmt(Targets.qty.ovsCorp.ArtiSeal[mi])}`,`${fmt(corpQA)}/${fmt(corpQT)}`,{v:corpQT>0?pctStr(corpQA,corpQT):"—",color:corpQT>0?pctClr(corpQA,corpQT):C.textMuted,bold:true}],["대리점국",`${fmt(distAS)}/${fmt(Targets.qty.ovsDist.ArtiSential[mi])}`,`${fmt(distVS)}/${fmt(Targets.qty.ovsDist.ArtiSeal[mi])}`,`${fmt(distQA)}/${fmt(distQT)}`,{v:distQT>0?pctStr(distQA,distQT):"—",color:distQT>0?pctClr(distQA,distQT):C.textMuted,bold:true}],[{v:"해외소계",bold:true},fmt(corpAS+distAS)+"/"+fmt(Targets.qty.overseas.ArtiSential[mi]),fmt(corpVS+distVS)+"/"+fmt(Targets.qty.overseas.ArtiSeal[mi]),{v:`${fmt(oQA)}/${fmt(oQT)}`,bold:true},{v:pctStr(oQA,oQT),color:pctClr(oQA,oQT),bold:true}],[{v:"통합",bold:true},`${fmt(qa.domestic.ArtiSential+corpAS+distAS)}/${fmt(Targets.qty.domestic.ArtiSential[mi]+Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal+corpVS+distVS)}/${fmt(Targets.qty.domestic.ArtiSeal[mi]+Targets.qty.overseas.ArtiSeal[mi])}`,{v:`${fmt(tQA)}/${fmt(tQT)}`,bold:true},{v:pctStr(tQA,tQT),color:pctClr(tQA,tQT),bold:true}]]}/>
+          <div style={{fontSize:9,color:C.textDim,marginTop:4}}>ⓘ 지사국(미·독·일) = 법인 인마켓 기준 · 대리점국 = HQ→대리점 선적 기준 · 지사국·대리점 목표 = 해외사업실 비율 기반 배분 (연간 총합은 사업계획 일치)</div>
+        </>):(<DT compact headers={["구분","ArtiSential","ArtiSeal","합계","달성률"]} rows={[["국내",`${fmt(qa.domestic.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi])}`,`${fmt(dQA)}/${fmt(dQT)}`,{v:pctStr(dQA,dQT),color:pctClr(dQA,dQT),bold:true}],["해외",`${fmt(qa.overseas.ArtiSential)}/${fmt(Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.overseas.ArtiSeal)}/${fmt(Targets.qty.overseas.ArtiSeal[mi])}`,`${fmt(oQA)}/${fmt(oQT)}`,{v:pctStr(oQA,oQT),color:pctClr(oQA,oQT),bold:true}],[{v:"통합",bold:true},`${fmt(qa.domestic.ArtiSential+qa.overseas.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi]+Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal+qa.overseas.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi]+Targets.qty.overseas.ArtiSeal[mi])}`,{v:`${fmt(tQA)}/${fmt(tQT)}`,bold:true},{v:pctStr(tQA,tQT),color:pctClr(tQA,tQT),bold:true}]]}/>)}
       </div>
       {M.standalone>0&&<div style={{marginTop:8,padding:"8px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6,fontSize:11,color:C.textMuted}}>별도 {fmtBn(M.standalone)} → 연결 {fmtBn(M.consolidated)} (Gap {fmtBn(M.standalone-M.consolidated)})</div>}
-      <Fn>※ 금액: 연결 가결산 (재무본부). 수량: Monthly Sales Report (영업관리팀). 목표: 2026년 사업계획.</Fn>
+      <Fn>※ 금액: 연결 가결산 (재무본부). 수량: 지사국=법인 인마켓 (해외사업실), 대리점국=HQ 선적 (출하상세조회). 목표: 2026년 사업계획 (해외 지역별 잠정).</Fn>
     </Card>
     {/* B1-2 */}
     <Card><SH icon="🗺️" title="B1-2. 지역별 매출 Breakdown" badge={<Badge color="blue">월간</Badge>}/>
