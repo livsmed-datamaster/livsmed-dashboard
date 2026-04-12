@@ -16,7 +16,7 @@ function useIsMobile(breakpoint=768){
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v5.0.3 — 신규칙 주차 + 일평균 WoW          ║
+// ║  LIVSMED Executive Dashboard v5.0.4 — 신규칙 주차 + 일평균 WoW          ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 const DASHBOARD_PASSWORD = "livsmed1000jo";
@@ -27,8 +27,8 @@ const Targets={
     domDealer:{ArtiSential:[5925,5955,6445,5236,5230,5679,9197,10371,12069,12689,13388,14617],ArtiSeal:[1255,1415,1610,735,720,830,1325,1480,1640,2375,2565,2785]},
     domDirect:{ArtiSential:[760,640,1020,1120,1204,1220,1324,1330,1310,1370,1440,1650],ArtiSeal:[55,75,120,250,295,315,390,450,550,575,580,610]},
     overseas:{ArtiSential:[851,5008,6160,5243,5888,8298,7293,9408,19083,9019,10039,29759],ArtiSeal:[370,845,1235,895,1025,1475,1344,1386,4435,1451,2731,7772],ArtiStapler:[0,0,0,0,0,0,0,0,0,0,0,0]},
-    ovsCorp:{ArtiSential:[851,4623,4675,4843,4868,4938,4863,4898,5153,5289,5319,5529],ArtiSeal:[370,845,1175,895,975,1250,970,1050,1325,995,1125,1419]},
-    ovsDist:{ArtiSential:[0,385,1485,400,1020,3360,2430,4510,13930,3730,4720,24230],ArtiSeal:[0,0,60,0,50,225,374,336,3110,456,1606,6353]}},
+    ovsCorp:{ArtiSential:[851,4543,4545,4703,4758,4758,4793,4888,5023,5119,5119,5349],ArtiSeal:[370,845,1175,895,975,1250,970,1050,1235,1045,1182,1472]},
+    ovsDist:{ArtiSential:[0,465,1615,540,1130,3540,2500,4520,14060,3900,4920,24410],ArtiSeal:[0,0,60,0,50,225,374,336,3200,406,1549,6300]}},
   amt:{domestic:[3223,3239,3757,3095,3166,3401,5131,5677,6510,7239,7786,8481],overseas:[568,2753,3500,2875,3231,4546,3987,4902,10776,4758,5921,17201],combined:[3791,5992,7257,5970,6396,7947,9118,10580,17286,11997,13707,25682],
     regions:{us:[335,2311,2345,2312,2345,2345,2312,2345,2345,2312,2379,2443],de:[59,59,237,89,118,296,89,89,232,118,118,262],jp:[173,185,196,244,257,269,309,352,392,436,448,519],other:[1,198,722,230,511,1636,1277,2116,7807,1892,2976,13977]}}
 };
@@ -37,7 +37,7 @@ const sum2=o=>o?(o.AS||0)+(o.Seal||0):0;
 
 // ── Fallback Data ──
 const fallbackWeekly={"2026.03 W4":{label:"2026.03 W4",updated:"2026.04.06",monthIndex:2,daysInWeek:7,orders:{domDealer:{w:{AS:1680,Seal:60},m:{AS:14240,Seal:902}},domDirect:{w:{AS:37,Seal:20},m:{AS:862,Seal:300}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:980,Seal:0}},ovsDist:{w:{AS:0,Seal:0},m:{AS:180,Seal:50}}},shipments:{domDealer:{w:{AS:1680,Seal:60},m:{AS:14240,Seal:902}},domDirect:{w:{AS:37,Seal:20},m:{AS:862,Seal:300}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:340,Seal:0},country:{w_us:0,w_de:0,w_jp:0,m_us:240,m_de:50,m_jp:50}},ovsDist:{w:{AS:0,Seal:0},m:{AS:25,Seal:30}}},inmarket:{w:{us:71,de:116,jp:115},m:{us:117,de:201,jp:179}},treasury:{cashBalance:13800,deposits:110000,elb:0,foreignCurrency:625,borrowings:3000,netCash:121425,weeklyFlow:-315,prevFlow:-1970,runway:24.2,trend:[{wk:"03 W1",flow:566},{wk:"03 W2",flow:-200},{wk:"03 W3",flow:-400},{wk:"03 W4",flow:-315}]}}};
-const fallbackMonthly={"2025-11":{label:"FY2025 11월 가결산 (REV01)",updated:"2025.12.16",monthIndex:10,revenue:{actual:4583,plan:7013,prev:3830,domActual:4346,ovsActual:237},pl:{cogs:1930,grossProfit:2653,grossMarginPct:57.9,opLoss:{actual:-1478,plan:277},ebitda:{actual:-1398,plan:310},netLoss:{actual:-1556,plan:282},costGroups:[{name:"인건비",actual:1560,plan:1543},{name:"R&D",actual:858,plan:970},{name:"영업활동",actual:765,plan:974},{name:"해외시장개척",actual:0,plan:31},{name:"기타",actual:948,plan:501}]},qtyActual:{domestic:{ArtiSential:5820,ArtiSeal:1050,ArtiStapler:0},overseas:{ArtiSential:620,ArtiSeal:280,ArtiStapler:0}},standalone:5569,consolidated:4583,regions:[{name:"🇰🇷 국내",data:[{m:"9월",v:4173},{m:"10월",v:3512},{m:"11월",v:4346}],target:5333,color:"#3b82f6"},{name:"🇺🇸 미국",data:[{m:"9월",v:246},{m:"10월",v:181},{m:"11월",v:46}],target:1434,color:"#ef4444"},{name:"🇩🇪 독일",data:[{m:"9월",v:56},{m:"10월",v:82},{m:"11월",v:95}],target:111,color:"#10b981"},{name:"🇯🇵 일본",data:[{m:"9월",v:36},{m:"10월",v:20},{m:"11월",v:32}],target:46,color:"#f59e0b"},{name:"🌍 기타",data:[{m:"9월",v:89},{m:"10월",v:36},{m:"11월",v:65}],target:89,color:"#a78bfa"}],ar:{balance:4250,collectionRate:88.5,longOverdue:99,detail:"국내 연체 47백만, 해외 연체 52백만"},inventory:{domestic:1297,overseas:3838,domesticDetail:{fiveMm:685,eightMm:561,trocar:7,artiSeal:44},overseasDetail:{LMJ:1454,LMG:2384,LMUS:"미수신"},lmusNote:"LMUS 재고: 추후 수령 예정"},arTrend:[{m:"9월",rate:91.2,overdue:85},{m:"10월",rate:89.3,overdue:92},{m:"11월",rate:88.5,overdue:99}],invTrend:[{m:"9월",dom:1350,ovs:3920},{m:"10월",dom:1320,ovs:3870},{m:"11월",dom:1297,ovs:3838}],forecast:[{m:"1월",fcQty:10275,ti:1},{m:"2월",fcQty:10648,ti:2},{m:"3월",fcQty:12785,ti:3}]}};
+const fallbackMonthly={"2025-11":{label:"FY2025 11월 가결산 (REV01)",updated:"2025.12.16",monthIndex:10,revenue:{actual:4583,plan:7013,prev:3830,domActual:4346,ovsActual:237},pl:{cogs:1930,grossProfit:2653,grossMarginPct:57.9,opLoss:{actual:-1478,plan:277},ebitda:{actual:-1398,plan:310},netLoss:{actual:-1556,plan:282},costGroups:[{name:"인건비",actual:1560,plan:1543},{name:"R&D",actual:858,plan:970},{name:"영업활동",actual:765,plan:974},{name:"해외시장개척",actual:0,plan:31},{name:"기타",actual:948,plan:501}]},qtyActual:{domestic:{ArtiSential:5820,ArtiSeal:1050,ArtiStapler:0},overseas:{ArtiSential:620,ArtiSeal:280,ArtiStapler:0}},standalone:5569,consolidated:4583,regions:[{name:"🇰🇷 국내",data:[{m:"9월",v:4173},{m:"10월",v:3512},{m:"11월",v:4346}],target:5333,color:"#3b82f6"},{name:"🇺🇸 미국",data:[{m:"9월",v:246},{m:"10월",v:181},{m:"11월",v:46}],target:1434,color:"#ef4444"},{name:"🇩🇪 독일",data:[{m:"9월",v:56},{m:"10월",v:82},{m:"11월",v:95}],target:111,color:"#10b981"},{name:"🇯🇵 일본",data:[{m:"9월",v:36},{m:"10월",v:20},{m:"11월",v:32}],target:46,color:"#f59e0b"},{name:"🌍 대리점국",data:[{m:"9월",v:89},{m:"10월",v:36},{m:"11월",v:65}],target:89,color:"#a78bfa"}],ar:{balance:4250,collectionRate:88.5,longOverdue:99,detail:"국내 연체 47백만, 해외 연체 52백만"},inventory:{domestic:1297,overseas:3838,domesticDetail:{fiveMm:685,eightMm:561,trocar:7,artiSeal:44},overseasDetail:{LMJ:1454,LMG:2384,LMUS:"미수신"},lmusNote:"LMUS 재고: 추후 수령 예정"},arTrend:[{m:"9월",rate:91.2,overdue:85},{m:"10월",rate:89.3,overdue:92},{m:"11월",rate:88.5,overdue:99}],invTrend:[{m:"9월",dom:1350,ovs:3920},{m:"10월",dom:1320,ovs:3870},{m:"11월",dom:1297,ovs:3838}],forecast:[{m:"1월",fcQty:10275,ti:1},{m:"2월",fcQty:10648,ti:2},{m:"3월",fcQty:12785,ti:3}]}};
 const fallbackQuarterly={"FY25-Q3":{label:"FY2025 3Q 확정 (2025.07~09)",updated:"2025.11.14",plTrend:[{q:"24.4Q",rev:95.8,opLoss:-62.6},{q:"25.1Q",rev:97.3,opLoss:-66.6},{q:"25.2Q",rev:114.1,opLoss:-54.3},{q:"25.3Q",rev:134.4,opLoss:-45.5}],cumRevenue:441.6,cumOpLoss:-229.0,entities:[{name:"LMUS (미국)",rev:"26.2억",gp:"7.3억",sga:"85.8억",opLoss:"△78.5억",share:"70%"},{name:"LMG (독일)",rev:"6.4억",gp:"3.2억",sga:"24.2억",opLoss:"△21.1억",share:"19%"},{name:"LMJ (일본)",rev:"3.0억",gp:"1.0억",sga:"14.0억",opLoss:"△13.1억",share:"12%"}],bs:{totalAssets:743.6,equity:535.9,currentAssets:514.1,currentLiabilities:146.3,totalDebt:207.8,currentRatio:351.5,debtRatio:38.8},cashTrend:[{q:"FY25 1Q",cash:180,net:120},{q:"2Q",cash:165,net:108},{q:"3Q",cash:148,net:95},{q:"4Q(IPO)",cash:1297,net:1267},{q:"FY26 1Q",cash:1201,net:1171}],ipoFunds:[{label:"연구개발비",plan:120,used:28},{label:"해외시장 개척",plan:80,used:15},{label:"운영자금",plan:60,used:22},{label:"시설투자",plan:40,used:5}]}};
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -55,7 +55,7 @@ async function fetchSheet(sheetId,sheetName){
   return parsed.data;
 }
 
-// ── v5.0.3: 50컬럼 스키마 (days_in_week + ovs_ship_source 추가) ──
+// ── v5.0.4: 50컬럼 스키마 (days_in_week + ovs_ship_source 추가) ──
 function csvToWeeklyShipments(rows){
   const store={};
   for(const r of rows){
@@ -98,13 +98,13 @@ function mergeTreasury(store,rows){
 
 function csvToMonthly(plRows,subRows){
   const store={};
-  const regColors={"🇰🇷 국내":"#3b82f6","🇺🇸 미국":"#ef4444","🇩🇪 독일":"#10b981","🇯🇵 일본":"#f59e0b","🌍 기타":"#a78bfa"};
+  const regColors={"🇰🇷 국내":"#3b82f6","🇺🇸 미국":"#ef4444","🇩🇪 독일":"#10b981","🇯🇵 일본":"#f59e0b","🌍 대리점국":"#a78bfa"};
   const allRegData={};
   const sortedPL=[...plRows].sort((a,b)=>String(a.month_key||"").localeCompare(String(b.month_key||"")));
   for(const r of sortedPL){
     const k=(r.month_key||"").trim();if(!k)continue;
     const mi=pN(r.month_index);
-    const regThisMonth=[{name:"🇰🇷 국내",v:pN(r.reg_korea),target:Targets.amt.domestic[mi]||0},{name:"🇺🇸 미국",v:pN(r.reg_us),target:Targets.amt.regions.us[mi]||0},{name:"🇩🇪 독일",v:pN(r.reg_germany),target:Targets.amt.regions.de[mi]||0},{name:"🇯🇵 일본",v:pN(r.reg_japan),target:Targets.amt.regions.jp[mi]||0},{name:"🌍 기타",v:pN(r.reg_other),target:Targets.amt.regions.other[mi]||0}];
+    const regThisMonth=[{name:"🇰🇷 국내",v:pN(r.reg_korea),target:Targets.amt.domestic[mi]||0},{name:"🇺🇸 미국",v:pN(r.reg_us),target:Targets.amt.regions.us[mi]||0},{name:"🇩🇪 독일",v:pN(r.reg_germany),target:Targets.amt.regions.de[mi]||0},{name:"🇯🇵 일본",v:pN(r.reg_japan),target:Targets.amt.regions.jp[mi]||0},{name:"🌍 대리점국",v:pN(r.reg_other),target:Targets.amt.regions.other[mi]||0}];
     const mLabel=`${mi+1}월`;
     for(const rg of regThisMonth){if(!allRegData[rg.name])allRegData[rg.name]=[];allRegData[rg.name].push({m:mLabel,v:rg.v,target:rg.target});}
     const regions=regThisMonth.map(rg=>{const hist=allRegData[rg.name]||[];const d=hist.slice(-3);while(d.length<3)d.unshift({m:"—",v:0});return{name:rg.name,data:d,target:rg.target,color:regColors[rg.name]||"#888"};});
@@ -202,7 +202,7 @@ const CC={dlrAS:"#3b82f6",dirAS:"#f97316",dlrVS:"#8b5cf6",dirVS:"#14b8a6",corpAS
 const shipRow2=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
 // ╔═══════════════════════════════════════╗
-// ║  WEEKLY TAB — v5.0.3 신규칙 + 일평균   ║
+// ║  WEEKLY TAB — v5.0.4 신규칙 + 일평균   ║
 // ╚═══════════════════════════════════════╝
 function WeeklyTab({weekKey,WS,isMobile}){
   const W=WS[weekKey];if(!W)return<NoData msg="해당 주차 데이터가 없습니다."/>;
@@ -222,7 +222,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
   const ovsOrdW=sum2(ord.ovsCorp.w)+sum2(ord.ovsDist.w),ovsOrdM=sum2(ord.ovsCorp.m)+sum2(ord.ovsDist.m);
   const domShipW=sum2(sh.domDealer.w)+sum2(sh.domDirect.w),domShipM=sum2(sh.domDealer.m)+sum2(sh.domDirect.m);
   const ovsShipW=sum2(sh.ovsCorp.w)+sum2(sh.ovsDist.w),ovsShipM=sum2(sh.ovsCorp.m)+sum2(sh.ovsDist.m);
-  // v5.0.3: 일평균 WoW
+  // v5.0.4: 일평균 WoW
   const pDOW=prevW?sum2(prevW.orders.domDealer.w)+sum2(prevW.orders.domDirect.w):null;
   const pOOW=prevW?sum2(prevW.orders.ovsCorp.w)+sum2(prevW.orders.ovsDist.w):null;
   const pDSW=prevW?sum2(prevW.shipments.domDealer.w)+sum2(prevW.shipments.domDirect.w):null;
@@ -254,7 +254,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
       A1(국내 수주/출하) → A2(해외 수주/출하/인마켓) → A3(자금). 국내는 대리점·직판, 해외는 지사국·대리점국으로 구분합니다.
     </TabIntro>
     {isSeam&&<div style={{padding:"8px 12px",marginBottom:12,borderRadius:6,background:C.amberBg,border:`1px solid ${C.amber}33`,fontSize:11,color:C.amber}}>⚠ 이 주차는 월초/월말 이음새 주차({days}일)입니다. 집계 일수가 적어 절대값이 작고, 달성률 변동이 클 수 있습니다.</div>}
-    {/* Summary Cards — v5.0.3: 일평균 WoW + 미니 달성률 바 */}
+    {/* Summary Cards — v5.0.4: 일평균 WoW + 미니 달성률 바 */}
     <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:isMobile?8:10,marginBottom:14}}>
       {[{label:"국내 수주",val:domOrdW,mVal:domOrdM,mTgt:dT,wow:wowDaily(domOrdW,days,pDOW,prevDays)},{label:"해외 수주",val:ovsOrdW,mVal:ovsOrdM,mTgt:oT,wow:wowDaily(ovsOrdW,days,pOOW,prevDays)},{label:"국내 출하",val:domShipW,mVal:domShipM,mTgt:dT,wow:wowDaily(domShipW,days,pDSW,prevDays)},{label:"해외 출하",val:ovsShipW,mVal:ovsShipM,mTgt:oT,wow:wowDaily(ovsShipW,days,pOSW,prevDays)}].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}><div style={{fontSize:10,color:C.textDim}}>{c.label}</div><div style={{fontSize:20,fontWeight:700}}>{fmt(c.val)}<span style={{fontSize:11,color:C.textMuted,marginLeft:2}}>대</span><span style={{fontSize:9,color:C.textDim,marginLeft:2}}>({days}일)</span></div>{c.wow!=null&&<div style={{fontSize:10,color:c.wow>=0?C.up:C.down}}>{c.wow>=0?"▲":"▼"} {fmt(Math.abs(c.wow))}/일 vs 전주</div>}<div style={{marginTop:6,padding:"0 4px"}}><ProgressBar value={c.mVal} max={c.mTgt} label={`${fmt(c.mVal)}/${fmt(c.mTgt)}`} height={4}/></div></Card>))}
     </div>
@@ -593,7 +593,7 @@ function Dashboard(){
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <style>{`*::-webkit-scrollbar{height:3px}*::-webkit-scrollbar-track{background:transparent}*::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}@media(max-width:767px){.lm-card{padding:12px !important}table th,table td{padding:4px 5px !important;font-size:10px !important}}`}</style>
     <div style={{padding:isMobile?"12px 14px":"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:isMobile?8:10}}>
-      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.3</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
+      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.4</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
       <div style={{display:"flex",gap:isMobile?6:8,alignItems:"center",flexWrap:"wrap",width:isMobile?"100%":undefined,justifyContent:isMobile?"space-between":undefined}}>
         {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:6,height:6,borderRadius:"50%",background:statusColor,display:"inline-block"}}/><span style={{fontSize:10,color:statusColor}}>{syncStatus.time?`${syncStatus.time}`:""} {syncStatus.msg}</span></div>}
         <button onClick={()=>setShowSettings(p=>!p)} style={{padding:isMobile?"6px 10px":"6px 12px",borderRadius:6,border:`1px solid ${showSettings?C.accent:C.border}`,background:showSettings?"rgba(59,130,246,0.15)":"transparent",color:showSettings?C.accent:C.textMuted,cursor:"pointer",fontSize:11,fontWeight:600}}>⚙️{isMobile?"":" 설정"}</button>
