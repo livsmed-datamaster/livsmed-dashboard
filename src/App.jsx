@@ -16,7 +16,7 @@ function useIsMobile(breakpoint=768){
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v5.0.4 — 신규칙 주차 + 일평균 WoW          ║
+// ║  LIVSMED Executive Dashboard v5.0.5 — 반품각주 + FC표시 + 인마켓각주    ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 const DASHBOARD_PASSWORD = "livsmed1000jo";
@@ -202,7 +202,7 @@ const CC={dlrAS:"#3b82f6",dirAS:"#f97316",dlrVS:"#8b5cf6",dirVS:"#14b8a6",corpAS
 const shipRow2=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
 // ╔═══════════════════════════════════════╗
-// ║  WEEKLY TAB — v5.0.4 신규칙 + 일평균   ║
+// ║  WEEKLY TAB — v5.0.5 반품각주 강화     ║
 // ╚═══════════════════════════════════════╝
 function WeeklyTab({weekKey,WS,isMobile}){
   const W=WS[weekKey];if(!W)return<NoData msg="해당 주차 데이터가 없습니다."/>;
@@ -212,7 +212,6 @@ function WeeklyTab({weekKey,WS,isMobile}){
   const prevW=wIdx>0?WS[wKeys[wIdx-1]]:null;
   const prevDays=prevW?.daysInWeek||7;
   const dT=getTT("domestic",mi),oT=getTT("overseas",mi);
-  // v5.0.2: 채널별 목표
   const dlrAS=Targets.qty.domDealer?.ArtiSential?.[mi]||0,dlrVS=Targets.qty.domDealer?.ArtiSeal?.[mi]||0;
   const dirAS=Targets.qty.domDirect?.ArtiSential?.[mi]||0,dirVS=Targets.qty.domDirect?.ArtiSeal?.[mi]||0;
   const dlrT=dlrAS+dlrVS,dirT=dirAS+dirVS;
@@ -222,7 +221,6 @@ function WeeklyTab({weekKey,WS,isMobile}){
   const ovsOrdW=sum2(ord.ovsCorp.w)+sum2(ord.ovsDist.w),ovsOrdM=sum2(ord.ovsCorp.m)+sum2(ord.ovsDist.m);
   const domShipW=sum2(sh.domDealer.w)+sum2(sh.domDirect.w),domShipM=sum2(sh.domDealer.m)+sum2(sh.domDirect.m);
   const ovsShipW=sum2(sh.ovsCorp.w)+sum2(sh.ovsDist.w),ovsShipM=sum2(sh.ovsCorp.m)+sum2(sh.ovsDist.m);
-  // v5.0.4: 일평균 WoW
   const pDOW=prevW?sum2(prevW.orders.domDealer.w)+sum2(prevW.orders.domDirect.w):null;
   const pOOW=prevW?sum2(prevW.orders.ovsCorp.w)+sum2(prevW.orders.ovsDist.w):null;
   const pDSW=prevW?sum2(prevW.shipments.domDealer.w)+sum2(prevW.shipments.domDirect.w):null;
@@ -254,7 +252,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
       A1(국내 수주/출하) → A2(해외 수주/출하/인마켓) → A3(자금). 국내는 대리점·직판, 해외는 지사국·대리점국으로 구분합니다.
     </TabIntro>
     {isSeam&&<div style={{padding:"8px 12px",marginBottom:12,borderRadius:6,background:C.amberBg,border:`1px solid ${C.amber}33`,fontSize:11,color:C.amber}}>⚠ 이 주차는 월초/월말 이음새 주차({days}일)입니다. 집계 일수가 적어 절대값이 작고, 달성률 변동이 클 수 있습니다.</div>}
-    {/* Summary Cards — v5.0.4: 일평균 WoW + 미니 달성률 바 */}
+    {/* Summary Cards */}
     <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:isMobile?8:10,marginBottom:14}}>
       {[{label:"국내 수주",val:domOrdW,mVal:domOrdM,mTgt:dT,wow:wowDaily(domOrdW,days,pDOW,prevDays)},{label:"해외 수주",val:ovsOrdW,mVal:ovsOrdM,mTgt:oT,wow:wowDaily(ovsOrdW,days,pOOW,prevDays)},{label:"국내 출하",val:domShipW,mVal:domShipM,mTgt:dT,wow:wowDaily(domShipW,days,pDSW,prevDays)},{label:"해외 출하",val:ovsShipW,mVal:ovsShipM,mTgt:oT,wow:wowDaily(ovsShipW,days,pOSW,prevDays)}].map((c,i)=>(<Card key={i} style={{marginBottom:0,textAlign:"center",padding:"12px 6px"}}><div style={{fontSize:10,color:C.textDim}}>{c.label}</div><div style={{fontSize:20,fontWeight:700}}>{fmt(c.val)}<span style={{fontSize:11,color:C.textMuted,marginLeft:2}}>대</span><span style={{fontSize:9,color:C.textDim,marginLeft:2}}>({days}일)</span></div>{c.wow!=null&&<div style={{fontSize:10,color:c.wow>=0?C.up:C.down}}>{c.wow>=0?"▲":"▼"} {fmt(Math.abs(c.wow))}/일 vs 전주</div>}<div style={{marginTop:6,padding:"0 4px"}}><ProgressBar value={c.mVal} max={c.mTgt} label={`${fmt(c.mVal)}/${fmt(c.mTgt)}`} height={4}/></div></Card>))}
     </div>
@@ -270,7 +268,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
         {stk2(domOrdT,"대리점 AS","직판 AS",CC.dlrAS,CC.dirAS,"📈 국내 수주 추이 — ArtiSential (8주)")}
         {stk2(domOrdT,"대리점 VS","직판 VS",CC.dlrVS,CC.dirVS,"📈 국내 수주 추이 — ArtiSeal (8주)")}
       </div>
-      <Fn>※ PO 접수 기준. A-prefix=ArtiSential, V-prefix=ArtiSeal (T/K/G 제외). 반품(RRCE/RREF)은 원 주문처 기준 마이너스. 국내 수주는 월말 집중 경향으로 1~2주차 수치가 낮은 것은 정상 패턴.{isSeam?" 이음새 주차는 집계 일수가 적어 달성률 변동이 클 수 있습니다.":""}</Fn>
+      <Fn>※ 순수주 기준(반품 차감 후). DSA+RREF=대리점, DSAB+RRCE+RREO=직판. A/V만 KPI, T/K/G 제외. 반품코드: RRCE(직판 유상반품), RREF(대리점 정산반품), RREO(오페라 정산). 국내 수주는 월말 집중 경향으로 1~2주차 수치가 낮은 것은 정상 패턴.{isSeam?" 이음새 주차는 집계 일수가 적어 달성률 변동이 클 수 있습니다.":""}</Fn>
     </Card>
 
     {/* ═══ A1-2. 국내 출하 현황 ═══ */}
@@ -398,9 +396,9 @@ function WeeklyTab({weekKey,WS,isMobile}){
     </Card>
   </div>);
 }
-// ╔═══════════════════════════════╗
-// ║  MONTHLY TAB (unchanged)       ║
-// ╚═══════════════════════════════╝
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  MONTHLY TAB — v5.0.5: 인마켓각주 + FC표시 + 금액/수량각주  ║
+// ╚══════════════════════════════════════════════════════════════╝
 const shipRow=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
 function MonthlyTab({monthKey,MS,WS,isMobile}){
@@ -424,6 +422,32 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
   const regTotal=regData.reduce((s,r)=>s+r.val,0);
   const invRegData=[];
   if(M.inventory.overseasDetail){const od=M.inventory.overseasDetail;invRegData.push({name:"가납(국내)",value:M.inventory.domestic});if(typeof od.LMJ==="number")invRegData.push({name:"LMJ(일본)",value:od.LMJ});if(typeof od.LMG==="number")invRegData.push({name:"LMG(독일)",value:od.LMG});if(typeof od.LMUS==="number")invRegData.push({name:"LMUS(미국)",value:od.LMUS});else if(od.LMUS&&od.LMUS!=="미수신")invRegData.push({name:"LMUS(미국)",value:pN(od.LMUS)});}
+
+  // ── v5.0.5: Forecast vs 실적 비교 로직 ──
+  const fc=M.forecast||[];
+  const allMK=Object.keys(MS).sort();
+  // 적중률: 이전 월의 forecast에서 현재 월을 예측한 값 vs 현재 월 실적
+  const fcAccuracy=(()=>{
+    // 현재 월의 실적 수량
+    const curActual=dQA+oQA;
+    if(curActual<=0)return null;
+    // 이전 월들의 forecast 중 현재 월을 예측한 값 찾기
+    const curMi=mi;
+    for(let idx=allMK.indexOf(monthKey)-1;idx>=0;idx--){
+      const prevM=MS[allMK[idx]];
+      if(!prevM?.forecast?.length)continue;
+      for(const f of prevM.forecast){
+        // fc_m1_label 등이 "1월","2월" 형태 → monthIndex+1과 매칭
+        const fMi=parseInt(f.m)-1;
+        if(fMi===curMi&&f.fcQty>0){
+          return{fcQty:f.fcQty,actual:curActual,diff:curActual-f.fcQty,pct:((curActual/f.fcQty)*100).toFixed(1),srcMonth:prevM.monthIndex+1};
+        }
+      }
+      break; // 직전 월만 확인
+    }
+    return null;
+  })();
+
   return(<div>
     <TabIntro color={C.accent} icon="📊" title="Monthly — 월간 경영 실적">매월 마감 후 재무본부가 산출하는 <strong style={{color:C.text}}>가결산 기준 경영 실적</strong>입니다. 익월 2주차에 확정되며, 매출은 마감 확정이나 비용은 추정 배부값입니다.<br/>핵심 질문: <strong style={{color:C.text}}>"이번 달 매출 목표를 달성했는가? 비용 구조는 건전한가? 현금 회수와 재고는 적정한가?"</strong></TabIntro>
     <div style={{padding:"8px 12px",marginBottom:14,borderRadius:6,background:"rgba(59,130,246,0.08)",border:`1px solid ${C.accent}33`,fontSize:11,color:C.accent}}>ⓘ <strong>{M.label}</strong> · 갱신: {M.updated}</div>
@@ -438,11 +462,13 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
       <div style={{padding:"10px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6,marginBottom:10}}><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📊 수량 기준 달성률 (보조지표)</div>
         {hasSplit?(<>
           <DT compact headers={["구분","ArtiSential","ArtiSeal","합계","달성률"]} rows={[["국내",`${fmt(qa.domestic.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi])}`,`${fmt(dQA)}/${fmt(dQT)}`,{v:pctStr(dQA,dQT),color:pctClr(dQA,dQT),bold:true}],["지사국 ⓘ",`${fmt(corpAS)}/${fmt(Targets.qty.ovsCorp.ArtiSential[mi])}`,`${fmt(corpVS)}/${fmt(Targets.qty.ovsCorp.ArtiSeal[mi])}`,`${fmt(corpQA)}/${fmt(corpQT)}`,{v:corpQT>0?pctStr(corpQA,corpQT):"—",color:corpQT>0?pctClr(corpQA,corpQT):C.textMuted,bold:true}],["대리점국",`${fmt(distAS)}/${fmt(Targets.qty.ovsDist.ArtiSential[mi])}`,`${fmt(distVS)}/${fmt(Targets.qty.ovsDist.ArtiSeal[mi])}`,`${fmt(distQA)}/${fmt(distQT)}`,{v:distQT>0?pctStr(distQA,distQT):"—",color:distQT>0?pctClr(distQA,distQT):C.textMuted,bold:true}],[{v:"해외소계",bold:true},fmt(corpAS+distAS)+"/"+fmt(Targets.qty.overseas.ArtiSential[mi]),fmt(corpVS+distVS)+"/"+fmt(Targets.qty.overseas.ArtiSeal[mi]),{v:`${fmt(oQA)}/${fmt(oQT)}`,bold:true},{v:pctStr(oQA,oQT),color:pctClr(oQA,oQT),bold:true}],[{v:"통합",bold:true},`${fmt(qa.domestic.ArtiSential+corpAS+distAS)}/${fmt(Targets.qty.domestic.ArtiSential[mi]+Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal+corpVS+distVS)}/${fmt(Targets.qty.domestic.ArtiSeal[mi]+Targets.qty.overseas.ArtiSeal[mi])}`,{v:`${fmt(tQA)}/${fmt(tQT)}`,bold:true},{v:pctStr(tQA,tQT),color:pctClr(tQA,tQT),bold:true}]]}/>
-          <div style={{fontSize:9,color:C.textDim,marginTop:4}}>ⓘ 지사국(미·독·일) = 법인 인마켓 기준 · 대리점국 = HQ→대리점 선적 기준 · 지사국·대리점 목표 = 해외사업실 비율 기반 배분 (연간 총합은 사업계획 일치)</div>
-        </>):(<DT compact headers={["구분","ArtiSential","ArtiSeal","합계","달성률"]} rows={[["국내",`${fmt(qa.domestic.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi])}`,`${fmt(dQA)}/${fmt(dQT)}`,{v:pctStr(dQA,dQT),color:pctClr(dQA,dQT),bold:true}],["해외",`${fmt(qa.overseas.ArtiSential)}/${fmt(Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.overseas.ArtiSeal)}/${fmt(Targets.qty.overseas.ArtiSeal[mi])}`,`${fmt(oQA)}/${fmt(oQT)}`,{v:pctStr(oQA,oQT),color:pctClr(oQA,oQT),bold:true}],[{v:"통합",bold:true},`${fmt(qa.domestic.ArtiSential+qa.overseas.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi]+Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal+qa.overseas.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi]+Targets.qty.overseas.ArtiSeal[mi])}`,{v:`${fmt(tQA)}/${fmt(tQT)}`,bold:true},{v:pctStr(tQA,tQT),color:pctClr(tQA,tQT),bold:true}]]}/>)}
+          <div style={{fontSize:9,color:C.textDim,marginTop:4}}>ⓘ 지사국(미·독·일) = 법인 인마켓(현지 실판매) 기준 · 대리점국 = HQ→대리점 선적 기준 · 매출 금액은 전 품목(T/K/G 포함) 연결 가결산, 수량은 AS+VS만 집계</div>
+        </>):(<><DT compact headers={["구분","ArtiSential","ArtiSeal","합계","달성률"]} rows={[["국내",`${fmt(qa.domestic.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi])}`,`${fmt(dQA)}/${fmt(dQT)}`,{v:pctStr(dQA,dQT),color:pctClr(dQA,dQT),bold:true}],["해외",`${fmt(qa.overseas.ArtiSential)}/${fmt(Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.overseas.ArtiSeal)}/${fmt(Targets.qty.overseas.ArtiSeal[mi])}`,`${fmt(oQA)}/${fmt(oQT)}`,{v:pctStr(oQA,oQT),color:pctClr(oQA,oQT),bold:true}],[{v:"통합",bold:true},`${fmt(qa.domestic.ArtiSential+qa.overseas.ArtiSential)}/${fmt(Targets.qty.domestic.ArtiSential[mi]+Targets.qty.overseas.ArtiSential[mi])}`,`${fmt(qa.domestic.ArtiSeal+qa.overseas.ArtiSeal)}/${fmt(Targets.qty.domestic.ArtiSeal[mi]+Targets.qty.overseas.ArtiSeal[mi])}`,{v:`${fmt(tQA)}/${fmt(tQT)}`,bold:true},{v:pctStr(tQA,tQT),color:pctClr(tQA,tQT),bold:true}]]}/>
+          <div style={{fontSize:9,color:C.textDim,marginTop:4}}>ⓘ 해외 수량 = 본사 선적 기준 (인마켓 데이터 확보 시 교체 예정) · 매출 금액은 전 품목(T/K/G 포함) 연결 가결산, 수량은 AS+VS만 집계</div>
+        </>)}
       </div>
       {M.standalone>0&&<div style={{marginTop:8,padding:"8px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6,fontSize:11,color:C.textMuted}}>별도 {fmtBn(M.standalone)} → 연결 {fmtBn(M.consolidated)} (Gap {fmtBn(M.standalone-M.consolidated)})</div>}
-      <Fn>※ 금액: 연결 가결산 (재무본부). 수량: 지사국=법인 인마켓 (해외사업실), 대리점국=HQ 선적 (출하상세조회). 목표: 2026년 사업계획 (해외 지역별 잠정).</Fn>
+      <Fn>※ 금액: 연결 가결산 전 품목 포함 (재무본부). 수량: AS+VS만 집계 — 지사국=법인 인마켓 (해외사업실), 대리점국=HQ 선적 (매출확정리스트). T/K/G 매출 비중 0.3~0.6%로 금액/수량 기준 차이는 미미. 목표: 2026년 사업계획.</Fn>
     </Card>
     {/* B1-2 */}
     <Card><SH icon="🗺️" title="B1-2. 지역별 매출 Breakdown" badge={<Badge color="blue">월간</Badge>}/>
@@ -460,6 +486,43 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
         </>);})()}
       <Fn>※ 해외: LMUS·LMG·LMJ 법인 현지 판매. 국내: 영업마케팅본부 데이터 확보 시 반영 예정.</Fn>
     </Card>
+
+    {/* ═══ B1-4. Sales Forecast ═══ (v5.0.5 신규) */}
+    <Card><SH icon="🔮" title="B1-4. Sales Forecast" badge={<Badge color="blue">월간</Badge>} desc="영업관리팀이 매월 초 공유하는 향후 3개월 롤링 포캐스트(AS+VS 통합 수량). 포캐스트 대비 실적 적중률도 표시합니다."/>
+      {fc.length>0?(
+        <div>
+          <div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:8}}>향후 3개월 전망 (AS+VS 합산)</div>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
+            <DT compact headers={["월","포캐스트(대)","월목표(대)","FC/목표"]} rows={fc.map(f=>{
+              const fmi=parseInt(f.m)-1;const tgt=getTT("domestic",fmi)+getTT("overseas",fmi);
+              return[f.m,fmt(f.fcQty),fmt(tgt),{v:tgt>0?pctStr(f.fcQty,tgt):"—",color:tgt>0?pctClr(f.fcQty,tgt):C.textMuted}];
+            })}/>
+            <div style={{height:160}}><ResponsiveContainer>
+              <BarChart data={fc.map(f=>{const fmi=parseInt(f.m)-1;return{m:f.m,포캐스트:f.fcQty,목표:getTT("domestic",fmi)+getTT("overseas",fmi)};})} barSize={28} margin={{top:5,right:10,bottom:0,left:0}}>
+                <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
+                <XAxis dataKey="m" tick={{fontSize:10,fill:"#cbd5e1"}} axisLine={false}/>
+                <YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false}/>
+                <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/>
+                <Legend wrapperStyle={{fontSize:9}}/>
+                <Bar dataKey="목표" fill="#475569" opacity={0.4} radius={[3,3,0,0]}/>
+                <Bar dataKey="포캐스트" fill="#f59e0b" radius={[3,3,0,0]}/>
+              </BarChart>
+            </ResponsiveContainer></div>
+          </div>
+          {fcAccuracy&&<div style={{marginTop:12,padding:"10px 14px",borderRadius:6,background:parseFloat(fcAccuracy.pct)>=90?"rgba(16,185,129,0.08)":parseFloat(fcAccuracy.pct)>=75?"rgba(245,158,11,0.08)":"rgba(239,68,68,0.08)",border:`1px solid ${parseFloat(fcAccuracy.pct)>=90?C.green:parseFloat(fcAccuracy.pct)>=75?C.amber:C.red}33`}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.text,marginBottom:4}}>📐 포캐스트 적중률 — {mi+1}월</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,fontSize:11}}>
+              <div><span style={{color:C.textDim}}>포캐스트: </span><span style={{fontWeight:600}}>{fmt(fcAccuracy.fcQty)}대</span></div>
+              <div><span style={{color:C.textDim}}>실적: </span><span style={{fontWeight:600}}>{fmt(fcAccuracy.actual)}대</span></div>
+              <div><span style={{color:C.textDim}}>적중률: </span><span style={{fontWeight:700,color:parseFloat(fcAccuracy.pct)>=90?C.green:parseFloat(fcAccuracy.pct)>=75?C.amber:C.red}}>{fcAccuracy.pct}%</span> <span style={{fontSize:10,color:fcAccuracy.diff>=0?C.up:C.down}}>({fcAccuracy.diff>=0?"+":""}{fmt(fcAccuracy.diff)})</span></div>
+            </div>
+            <div style={{fontSize:9,color:C.textDim,marginTop:4}}>※ {fcAccuracy.srcMonth}월 시점 포캐스트 vs {mi+1}월 실적 비교</div>
+          </div>}
+        </div>
+      ):(<NoData msg="포캐스트 데이터 미입력 — Monthly_Subsidiary fc_m1~m3 입력 필요"/>)}
+      <Fn>※ 영업관리팀(장윤진 팀장) 매월 초 향후 3개월 롤링 포캐스트. AS+VS 통합 수량, 국내+해외 합산. 포캐스트 업데이트 주기: 월 1회.</Fn>
+    </Card>
+
     {/* B2 손익 */}
     <Card><SH icon="📈" title="B2. 손익 (P&L)" badge={<Badge color="blue">월간</Badge>}/>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:14}}>
@@ -593,7 +656,7 @@ function Dashboard(){
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <style>{`*::-webkit-scrollbar{height:3px}*::-webkit-scrollbar-track{background:transparent}*::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}@media(max-width:767px){.lm-card{padding:12px !important}table th,table td{padding:4px 5px !important;font-size:10px !important}}`}</style>
     <div style={{padding:isMobile?"12px 14px":"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:isMobile?8:10}}>
-      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.4</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
+      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.5</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
       <div style={{display:"flex",gap:isMobile?6:8,alignItems:"center",flexWrap:"wrap",width:isMobile?"100%":undefined,justifyContent:isMobile?"space-between":undefined}}>
         {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:6,height:6,borderRadius:"50%",background:statusColor,display:"inline-block"}}/><span style={{fontSize:10,color:statusColor}}>{syncStatus.time?`${syncStatus.time}`:""} {syncStatus.msg}</span></div>}
         <button onClick={()=>setShowSettings(p=>!p)} style={{padding:isMobile?"6px 10px":"6px 12px",borderRadius:6,border:`1px solid ${showSettings?C.accent:C.border}`,background:showSettings?"rgba(59,130,246,0.15)":"transparent",color:showSettings?C.accent:C.textMuted,cursor:"pointer",fontSize:11,fontWeight:600}}>⚙️{isMobile?"":" 설정"}</button>
