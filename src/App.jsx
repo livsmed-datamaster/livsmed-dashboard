@@ -16,7 +16,7 @@ function useIsMobile(breakpoint=768){
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v5.0.6 — B3 국내 판매유형 구분 추가        ║
+// ║  LIVSMED Executive Dashboard v5.0.7 — 차트 X축 tick 간결화             ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 const DASHBOARD_PASSWORD = "livsmed1000jo";
@@ -55,7 +55,6 @@ async function fetchSheet(sheetId,sheetName){
   return parsed.data;
 }
 
-// ── v5.0.4: 50컬럼 스키마 (days_in_week + ovs_ship_source 추가) ──
 function csvToWeeklyShipments(rows){
   const store={};
   for(const r of rows){
@@ -136,11 +135,9 @@ function mergeInmarket(store,rows){
   let prev=null;
   for(const r of sorted){
     const k=(r.month_key||"").trim();if(!k||!store[k])continue;
-    /* AS/VS split columns (new schema) */
     const hasNew=r.im_us_AS!==undefined||r.im_de_AS!==undefined||r.im_jp_AS!==undefined;
     const iUS_AS=pN(r.im_us_AS),iUS_VS=pN(r.im_us_VS),iDE_AS=pN(r.im_de_AS),iDE_VS=pN(r.im_de_VS),iJP_AS=pN(r.im_jp_AS),iJP_VS=pN(r.im_jp_VS);
     const dAS=pN(r.ship_dist_AS),dVS=pN(r.ship_dist_VS);
-    /* backward-compat: fall back to combined columns */
     const ovsUS=hasNew?iUS_AS+iUS_VS:pN(r.ovs_us_actual);
     const ovsDE=hasNew?iDE_AS+iDE_VS:pN(r.ovs_de_actual);
     const ovsJP=hasNew?iJP_AS+iJP_VS:pN(r.ovs_jp_actual);
@@ -202,7 +199,7 @@ const CC={dlrAS:"#3b82f6",dirAS:"#f97316",dlrVS:"#8b5cf6",dirVS:"#14b8a6",corpAS
 const shipRow2=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
 // ╔═══════════════════════════════════════╗
-// ║  WEEKLY TAB — v5.0.6                ║
+// ║  WEEKLY TAB — v5.0.7                ║
 // ╚═══════════════════════════════════════╝
 function WeeklyTab({weekKey,WS,isMobile}){
   const W=WS[weekKey];if(!W)return<NoData msg="해당 주차 데이터가 없습니다."/>;
@@ -229,8 +226,9 @@ function WeeklyTab({weekKey,WS,isMobile}){
   const wowDaily=(cur,curD,prev,prevD)=>{if(prev==null||prevD===0)return null;const ca=dailyAvg(cur,curD),pa=dailyAvg(prev,prevD);return Math.round(ca-pa);};
   const chTbl=(data,tAS,tVS)=><DT compact headers={["품목","금주(대)","월누적(대)","월목표(대)","달성률"]} rows={[shipRow2("ArtiSential",data.w.AS,data.m.AS,tAS),shipRow2("ArtiSeal",data.w.Seal,data.m.Seal,tVS),[{v:"합계",bold:true},{v:fmt(sum2(data.w)),bold:true},{v:fmt(sum2(data.m)),bold:true},{v:fmt((tAS||0)+(tVS||0)),bold:true},{v:pctStr(sum2(data.m),(tAS||0)+(tVS||0)),color:pctClr(sum2(data.m),(tAS||0)+(tVS||0)),bold:true}]]}/>;
   const t8=wKeys.slice(Math.max(0,wIdx-7),wIdx+1);
-  const mkT=(fn)=>t8.map(k=>{const d=WS[k]?.daysInWeek||7;return{wk:k.replace(/^\d{4}[\.\-]/,"")+(d<7?` ⚠${d}일`:` ${d}일`),...fn(WS[k])};});
-  const seamTick=({x,y,payload})=>{const s=String(payload.value||"").includes("⚠");return<text x={x} y={y+10} textAnchor="middle" fontSize={9} fill={s?"#f59e0b":"#cbd5e1"} fontWeight={s?700:400}>{payload.value}</text>;};
+  // ── v5.0.7: X축 tick에서 일수 표기 제거 ──
+  const mkT=(fn)=>t8.map(k=>({wk:k.replace(/^\d{4}[\.\-]/,""),...fn(WS[k])}));
+  const seamTick=({x,y,payload})=>(<text x={x} y={y+10} textAnchor="middle" fontSize={9} fill="#cbd5e1">{payload.value}</text>);
   const domOrdT=mkT(w=>({"대리점 AS":w?.orders?.domDealer?.w?.AS||0,"직판 AS":w?.orders?.domDirect?.w?.AS||0,"대리점 VS":w?.orders?.domDealer?.w?.Seal||0,"직판 VS":w?.orders?.domDirect?.w?.Seal||0}));
   const domShipT=mkT(w=>({"대리점 AS":w?.shipments?.domDealer?.w?.AS||0,"직판 AS":w?.shipments?.domDirect?.w?.AS||0,"대리점 VS":w?.shipments?.domDealer?.w?.Seal||0,"직판 VS":w?.shipments?.domDirect?.w?.Seal||0}));
   const ovsOrdT=mkT(w=>({"지사국 AS":w?.orders?.ovsCorp?.w?.AS||0,"대리점국 AS":w?.orders?.ovsDist?.w?.AS||0,"지사국 VS":w?.orders?.ovsCorp?.w?.Seal||0,"대리점국 VS":w?.orders?.ovsDist?.w?.Seal||0}));
@@ -239,7 +237,8 @@ function WeeklyTab({weekKey,WS,isMobile}){
   const corpShipCountryT=mkT(w=>({"미국":w?.shipments?.ovsCorp?.country?.w_us||0,"독일":w?.shipments?.ovsCorp?.country?.w_de||0,"일본":w?.shipments?.ovsCorp?.country?.w_jp||0}));
   const stk2=(data,k1,k2,c1,c2,label)=>{if(data.length<2)return null;return(<div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{label}</div><div style={{height:200}}><ResponsiveContainer><BarChart data={data} barSize={22} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="wk" tick={seamTick} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/><Legend wrapperStyle={{fontSize:9}}/><Bar dataKey={k1} stackId="s" fill={c1} name={k1}/><Bar dataKey={k2} stackId="s" fill={c2} radius={[3,3,0,0]} name={k2}/></BarChart></ResponsiveContainer></div></div>);};
   const stk3=(data,label)=>{if(data.length<2)return null;return(<div><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>{label}</div><div style={{height:200}}><ResponsiveContainer><BarChart data={data} barSize={22} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="wk" tick={seamTick} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>[`${fmt(v)}대`,n]}/><Legend wrapperStyle={{fontSize:9}}/><Bar dataKey="미국" stackId="s" fill={CC.imUS}/><Bar dataKey="독일" stackId="s" fill={CC.imDE}/><Bar dataKey="일본" stackId="s" fill={CC.imJP} radius={[3,3,0,0]}/></BarChart></ResponsiveContainer></div></div>);};
-  const cashTD=wKeys.slice(Math.max(0,wIdx-5),wIdx+1).map(k=>{const d=WS[k]?.daysInWeek||7;const t=WS[k]?.treasury;return{wk:k.replace(/^\d{4}[\.\-]/,"")+(d<7?` ⚠${d}일`:` ${d}일`),flow:t?.weeklyFlow||0,netCash:t?.netCash||0};});
+  // ── v5.0.7: 자금 차트도 동일하게 일수 표기 제거 ──
+  const cashTD=wKeys.slice(Math.max(0,wIdx-5),wIdx+1).map(k=>{const t=WS[k]?.treasury;return{wk:k.replace(/^\d{4}[\.\-]/,""),flow:t?.weeklyFlow||0,netCash:t?.netCash||0};});
   const mCumFlow=wKeys.filter(k=>WS[k]?.monthIndex===mi&&k<=weekKey).reduce((s,k)=>s+(WS[k]?.treasury?.weeklyFlow||0),0);
   const mBurn=(tr&&tr.runway>0)?Math.round(tr.netCash/tr.runway):null;
   const cc=sh.ovsCorp.country||{w_us:0,w_de:0,w_jp:0,m_us:0,m_de:0,m_jp:0};
@@ -397,7 +396,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
   </div>);
 }
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  MONTHLY TAB — v5.0.6: B3 국내 판매유형 + FC표시 + 인마켓각주         ║
+// ║  MONTHLY TAB — v5.0.7                                               ║
 // ╚══════════════════════════════════════════════════════════════╝
 const shipRow=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
@@ -405,7 +404,6 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
   const M=MS[monthKey];if(!M)return<NoData msg="해당 월 데이터가 없습니다."/>;
   const mi=M.monthIndex,rv=M.revenue,pl=M.pl,qa=M.qtyActual;
   const dQA=sumP(qa.domestic),dQT=getTT("domestic",mi);
-  /* A2: 지사국=인마켓, 대리점국=선적 분리 */
   const im=M.inmarket,hasSplit=im&&(im.corp?.AS>0||im.corp?.Seal>0||im.dist?.AS>0||im.dist?.Seal>0);
   const corpAS=im?.corp?.AS||0,corpVS=im?.corp?.Seal||0,corpQA=corpAS+corpVS;
   const distAS=im?.dist?.AS||0,distVS=im?.dist?.Seal||0,distQA=distAS+distVS;
@@ -423,27 +421,22 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
   const invRegData=[];
   if(M.inventory.overseasDetail){const od=M.inventory.overseasDetail;invRegData.push({name:"가납(국내)",value:M.inventory.domestic});if(typeof od.LMJ==="number")invRegData.push({name:"LMJ(일본)",value:od.LMJ});if(typeof od.LMG==="number")invRegData.push({name:"LMG(독일)",value:od.LMG});if(typeof od.LMUS==="number")invRegData.push({name:"LMUS(미국)",value:od.LMUS});else if(od.LMUS&&od.LMUS!=="미수신")invRegData.push({name:"LMUS(미국)",value:pN(od.LMUS)});}
 
-  // ── v5.0.5: Forecast vs 실적 비교 로직 ──
   const fc=M.forecast||[];
   const allMK=Object.keys(MS).sort();
-  // 적중률: 이전 월의 forecast에서 현재 월을 예측한 값 vs 현재 월 실적
   const fcAccuracy=(()=>{
-    // 현재 월의 실적 수량
     const curActual=dQA+oQA;
     if(curActual<=0)return null;
-    // 이전 월들의 forecast 중 현재 월을 예측한 값 찾기
     const curMi=mi;
     for(let idx=allMK.indexOf(monthKey)-1;idx>=0;idx--){
       const prevM=MS[allMK[idx]];
       if(!prevM?.forecast?.length)continue;
       for(const f of prevM.forecast){
-        // fc_m1_label 등이 "1월","2월" 형태 → monthIndex+1과 매칭
         const fMi=parseInt(f.m)-1;
         if(fMi===curMi&&f.fcQty>0){
           return{fcQty:f.fcQty,actual:curActual,diff:curActual-f.fcQty,pct:((curActual/f.fcQty)*100).toFixed(1),srcMonth:prevM.monthIndex+1};
         }
       }
-      break; // 직전 월만 확인
+      break;
     }
     return null;
   })();
@@ -509,7 +502,7 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
       <Fn>※ 해외: LMUS·LMG·LMJ 법인 현지 판매. 국내: 영업마케팅본부 데이터 확보 시 반영 예정.</Fn>
     </Card>
 
-    {/* ═══ B1-4. Sales Forecast ═══ (v5.0.5 신규) */}
+    {/* ═══ B1-4. Sales Forecast ═══ */}
     <Card><SH icon="🔮" title="B1-4. Sales Forecast" badge={<Badge color="blue">월간</Badge>} desc="영업관리팀이 매월 초 공유하는 향후 3개월 롤링 포캐스트(AS+VS 통합 수량). 포캐스트 대비 실적 적중률도 표시합니다."/>
       {fc.length>0?(
         <div>
@@ -586,7 +579,7 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
 }
 
 // ╔═══════════════════════════════╗
-// ║  QUARTERLY TAB (unchanged)     ║
+// ║  QUARTERLY TAB                 ║
 // ╚═══════════════════════════════╝
 function QuarterlyTab({qKey,QS,isMobile}){
   const Q=QS[qKey];if(!Q)return<NoData msg="해당 분기 데이터가 없습니다."/>;
@@ -678,7 +671,7 @@ function Dashboard(){
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <style>{`*::-webkit-scrollbar{height:3px}*::-webkit-scrollbar-track{background:transparent}*::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}@media(max-width:767px){.lm-card{padding:12px !important}table th,table td{padding:4px 5px !important;font-size:10px !important}}`}</style>
     <div style={{padding:isMobile?"12px 14px":"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:isMobile?8:10}}>
-      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.6</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
+      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.7</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
       <div style={{display:"flex",gap:isMobile?6:8,alignItems:"center",flexWrap:"wrap",width:isMobile?"100%":undefined,justifyContent:isMobile?"space-between":undefined}}>
         {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:6,height:6,borderRadius:"50%",background:statusColor,display:"inline-block"}}/><span style={{fontSize:10,color:statusColor}}>{syncStatus.time?`${syncStatus.time}`:""} {syncStatus.msg}</span></div>}
         <button onClick={()=>setShowSettings(p=>!p)} style={{padding:isMobile?"6px 10px":"6px 12px",borderRadius:6,border:`1px solid ${showSettings?C.accent:C.border}`,background:showSettings?"rgba(59,130,246,0.15)":"transparent",color:showSettings?C.accent:C.textMuted,cursor:"pointer",fontSize:11,fontWeight:600}}>⚙️{isMobile?"":" 설정"}</button>
