@@ -16,7 +16,7 @@ function useIsMobile(breakpoint=768){
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v5.0.7 — 차트 X축 tick 간결화             ║
+// ║  LIVSMED Executive Dashboard v5.1.0 — 국내 인마켓 AS/VS 분리            ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 const DASHBOARD_PASSWORD = "livsmed1000jo";
@@ -141,16 +141,20 @@ function mergeInmarket(store,rows){
     const ovsUS=hasNew?iUS_AS+iUS_VS:pN(r.ovs_us_actual);
     const ovsDE=hasNew?iDE_AS+iDE_VS:pN(r.ovs_de_actual);
     const ovsJP=hasNew?iJP_AS+iJP_VS:pN(r.ovs_jp_actual);
+    const dDir=pN(r.dom_direct_actual),dDlr=pN(r.dom_dealer_actual);
+    const hasDomNew=r.dom_AS_total!==undefined||r.dom_VS_total!==undefined;
+    const domAS=hasDomNew?pN(r.dom_AS_total):(dDir+dDlr);
+    const domVS=hasDomNew?pN(r.dom_VS_total):0;
     const cur={
-      domestic:{direct:pN(r.dom_direct_actual),dealer:pN(r.dom_dealer_actual)},
+      domestic:{direct:dDir,dealer:dDlr,AS:domAS,VS:domVS},
       overseas:{us:ovsUS,de:ovsDE,jp:ovsJP},
       corp:{AS:iUS_AS+iDE_AS+iJP_AS,Seal:iUS_VS+iDE_VS+iJP_VS,us:{AS:iUS_AS,VS:iUS_VS},de:{AS:iDE_AS,VS:iDE_VS},jp:{AS:iJP_AS,VS:iJP_VS}},
       dist:{AS:dAS,Seal:dVS}};
-    cur.domTotal=cur.domestic.direct+cur.domestic.dealer;
+    cur.domTotal=domAS+domVS;
     cur.corpTotal=cur.corp.AS+cur.corp.Seal;cur.distTotal=cur.dist.AS+cur.dist.Seal;
     cur.ovsTotal=cur.overseas.us+cur.overseas.de+cur.overseas.jp;
     cur.grandTotal=cur.domTotal+cur.ovsTotal;
-    if(prev){cur.prev={domTotal:prev.domTotal,ovsTotal:prev.ovsTotal,grandTotal:prev.grandTotal,corpTotal:prev.corpTotal,distTotal:prev.distTotal,overseas:{us:prev.overseas.us,de:prev.overseas.de,jp:prev.overseas.jp},domestic:{direct:prev.domestic.direct,dealer:prev.domestic.dealer},corp:{AS:prev.corp.AS,Seal:prev.corp.Seal},dist:{AS:prev.dist.AS,Seal:prev.dist.Seal}};}
+    if(prev){cur.prev={domTotal:prev.domTotal,ovsTotal:prev.ovsTotal,grandTotal:prev.grandTotal,corpTotal:prev.corpTotal,distTotal:prev.distTotal,overseas:{us:prev.overseas.us,de:prev.overseas.de,jp:prev.overseas.jp},domestic:{direct:prev.domestic.direct,dealer:prev.domestic.dealer,AS:prev.domestic.AS,VS:prev.domestic.VS},corp:{AS:prev.corp.AS,Seal:prev.corp.Seal},dist:{AS:prev.dist.AS,Seal:prev.dist.Seal}};}
     store[k].inmarket=cur;prev=cur;
   }
   return store;
@@ -396,7 +400,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
   </div>);
 }
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  MONTHLY TAB — v5.0.7                                               ║
+// ║  MONTHLY TAB — v5.1.0                                              ║
 // ╚══════════════════════════════════════════════════════════════╝
 const shipRow=(nm,w,m,t)=>[nm,fmt(w),fmt(m),fmt(t),{v:pctStr(m,t),color:pctClr(m,t),bold:true}];
 
@@ -496,10 +500,10 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
     {/* B1-3 인마켓 */}
     <Card><SH icon="🏥" title="B1-3. 인마켓" badge={<Badge color="blue">월간</Badge>} desc="최종 유통 단계의 판매/사용 수량(AS+VS, 개)."/>
       {(()=>{const im=M.inmarket;if(!im)return<NoData msg="인마켓 데이터 미입력"/>;const d=im.domestic,ov=im.overseas,pr=im.prev;const deltaStr=(cur,prev)=>{if(prev==null)return"";const diff=cur-prev;if(diff===0)return<span style={{fontSize:10,color:C.textDim}}>→</span>;return<span style={{fontSize:10,color:diff>0?C.up:C.down}}>{diff>0?`▲${fmt(diff)}`:`▼${fmt(Math.abs(diff))}`}</span>;};const ovsEntries=[{name:"🇺🇸 미국",val:ov.us,prev:pr?.overseas?.us},{name:"🇩🇪 독일",val:ov.de,prev:pr?.overseas?.de},{name:"🇯🇵 일본",val:ov.jp,prev:pr?.overseas?.jp}];
-        return(<><div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:12,marginBottom:14}}><div style={{textAlign:"center",padding:isMobile?10:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>해외 법인 합계</div><div style={{fontSize:isMobile?18:22,fontWeight:700}}>{fmt(im.ovsTotal)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div>{pr&&<div style={{marginTop:2}}>{deltaStr(im.ovsTotal,pr.ovsTotal)}</div>}</div><div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>🇰🇷 국내</div><div style={{fontSize:18,fontWeight:700}}>{im.domTotal>0?fmt(im.domTotal):<span style={{fontSize:12,color:C.textDim}}>데이터 대기</span>}</div></div><div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>통합</div><div style={{fontSize:18,fontWeight:700}}>{fmt(im.grandTotal)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div></div></div>
+        return(<><div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:12,marginBottom:14}}><div style={{textAlign:"center",padding:isMobile?10:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>해외 법인 합계</div><div style={{fontSize:isMobile?18:22,fontWeight:700}}>{fmt(im.ovsTotal)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div>{pr&&<div style={{marginTop:2}}>{deltaStr(im.ovsTotal,pr.ovsTotal)}</div>}</div><div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>🇰🇷 국내</div><div style={{fontSize:18,fontWeight:700}}>{im.domTotal>0?fmt(im.domTotal):<span style={{fontSize:12,color:C.textDim}}>데이터 대기</span>}</div>{im.domestic.AS>0&&<div style={{fontSize:9,color:C.textDim,marginTop:2}}>AS {fmt(im.domestic.AS)} · VS {fmt(im.domestic.VS)}</div>}</div><div style={{textAlign:"center",padding:12,background:"rgba(255,255,255,0.02)",borderRadius:8}}><div style={{fontSize:10,color:C.textDim}}>통합</div><div style={{fontSize:18,fontWeight:700}}>{fmt(im.grandTotal)}<span style={{fontSize:11,color:C.textMuted,marginLeft:4}}>개</span></div></div></div>
           <DT compact headers={["법인","실적(대)","전월비"]} rows={ovsEntries.map(e=>[e.name,fmt(e.val),{v:e.prev!=null?(e.val-e.prev>=0?`▲${fmt(e.val-e.prev)}`:`▼${fmt(Math.abs(e.val-e.prev))}`):"—",color:e.prev!=null?(e.val-e.prev>=0?C.up:C.down):C.textDim}]).concat([[{v:"합계",bold:true},{v:fmt(im.ovsTotal),bold:true},"—"]])}/>
         </>);})()}
-      <Fn>※ 해외: LMUS·LMG·LMJ 법인 현지 판매. 국내: 영업마케팅본부 데이터 확보 시 반영 예정.</Fn>
+      <Fn>※ 해외: LMUS·LMG·LMJ 법인 현지 판매. 국내: 영업관리팀(장윤진 팀장) 매월 제공, AS+VS 합산. 채널별(대리점/직판) 분리는 영업마케팅 데이터 확보 시 반영 예정.</Fn>
     </Card>
 
     {/* ═══ B1-4. Sales Forecast ═══ */}
@@ -671,7 +675,7 @@ function Dashboard(){
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <style>{`*::-webkit-scrollbar{height:3px}*::-webkit-scrollbar-track{background:transparent}*::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}@media(max-width:767px){.lm-card{padding:12px !important}table th,table td{padding:4px 5px !important;font-size:10px !important}}`}</style>
     <div style={{padding:isMobile?"12px 14px":"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:isMobile?8:10}}>
-      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.0.7</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
+      <div><div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.1.0</span></div><div style={{fontSize:isMobile?10:11,color:C.textDim,marginTop:2}}>{cur?.label||""} · {cur?.updated||""}</div></div>
       <div style={{display:"flex",gap:isMobile?6:8,alignItems:"center",flexWrap:"wrap",width:isMobile?"100%":undefined,justifyContent:isMobile?"space-between":undefined}}>
         {!isMobile&&<div style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:6,height:6,borderRadius:"50%",background:statusColor,display:"inline-block"}}/><span style={{fontSize:10,color:statusColor}}>{syncStatus.time?`${syncStatus.time}`:""} {syncStatus.msg}</span></div>}
         <button onClick={()=>setShowSettings(p=>!p)} style={{padding:isMobile?"6px 10px":"6px 12px",borderRadius:6,border:`1px solid ${showSettings?C.accent:C.border}`,background:showSettings?"rgba(59,130,246,0.15)":"transparent",color:showSettings?C.accent:C.textMuted,cursor:"pointer",fontSize:11,fontWeight:600}}>⚙️{isMobile?"":" 설정"}</button>
