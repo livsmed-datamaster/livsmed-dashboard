@@ -16,8 +16,11 @@ function useIsMobile(breakpoint=768){
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v5.2.0                                      ║
-// ║  — 해외 지사국·대리점국 사업계획 분리 표시 (A2-1, A2-2)                  ║
+// ║  LIVSMED Executive Dashboard v5.2.1                                      ║
+// ║  — v5.2.1: Runway 빈 값 처리 (직전 3개월 데이터 부재 행 "—" 표시)        ║
+// ║      · mergeTreasury: runway pN→pNNull (빈 셀=null, 0 아님)              ║
+// ║      · A3 자금 카드: runway null이면 "—" (구 "0개월" 오표시 방지)        ║
+// ║  — v5.2.0: 해외 지사국·대리점국 사업계획 분리 표시 (A2-1, A2-2)          ║
 // ║  — per-channel ProgressBar 추가 (국내 패턴 일치)                         ║
 // ║  — 0/null 목표 "—" 표시 처리                                             ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
@@ -91,7 +94,7 @@ function mergeTreasury(store,rows){
     flowHist.push({wk:wkShort,flow:wf});
     const trend=flowHist.slice(-4);
     if(!store[k])store[k]={label:r.week_label||k,updated:r.updated||"",monthIndex:0,daysInWeek:7,orders:{domDealer:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},domDirect:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},ovsDist:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}}},shipments:{domDealer:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},domDirect:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}},ovsCorp:{w:{AS:0,Seal:0},m:{AS:0,Seal:0},country:{w_us:0,w_de:0,w_jp:0,m_us:0,m_de:0,m_jp:0}},ovsDist:{w:{AS:0,Seal:0},m:{AS:0,Seal:0}}},inmarket:{w:{us:0,de:0,jp:0},m:{us:0,de:0,jp:0}}};
-    store[k].treasury={cashBalance:pN(r.cash_balance),deposits:pN(r.deposits),elb:pN(r.elb),foreignCurrency:pN(r.foreign_currency),borrowings:pN(r.borrowings),netCash:pN(r.net_cash),weeklyFlow:wf,prevFlow:flowHist.length>=2?flowHist[flowHist.length-2].flow:0,runway:pN(r.runway),monthlyNetFlow:pNNull(r.monthly_net_flow),trend:[...trend],
+    store[k].treasury={cashBalance:pN(r.cash_balance),deposits:pN(r.deposits),elb:pN(r.elb),foreignCurrency:pN(r.foreign_currency),borrowings:pN(r.borrowings),netCash:pN(r.net_cash),weeklyFlow:wf,prevFlow:flowHist.length>=2?flowHist[flowHist.length-2].flow:0,runway:pNNull(r.runway),monthlyNetFlow:pNNull(r.monthly_net_flow),trend:[...trend],
       cfInSales:pNNull(r.cf_in_sales),cfInOther:pNNull(r.cf_in_other),cfOutLabor:pNNull(r.cf_out_labor),cfOutMaterial:pNNull(r.cf_out_material),cfOutOpex:pNNull(r.cf_out_opex),cfInvest:pNNull(r.cf_invest)};
     if(r.updated)store[k].updated=r.updated;
   }
@@ -207,7 +210,8 @@ const CC={dlrAS:"#3b82f6",dirAS:"#f97316",dlrVS:"#8b5cf6",dirVS:"#14b8a6",corpAS
 const shipRow2=(nm,w,m,t)=>{const noT=(t==null||t<=0);return[nm,fmt(w),fmt(m),noT?"—":fmt(t),{v:noT?"—":pctStr(m,t),color:noT?C.textMuted:pctClr(m,t),bold:true}];};
 
 // ╔═══════════════════════════════════════╗
-// ║  WEEKLY TAB — v5.2.0                  ║
+// ║  WEEKLY TAB — v5.2.1                  ║
+// ║  v5.2.1: A3 Runway 카드 빈 값(null) "—" 표시.           ║
 // ║  v5.2.0: 해외 지사국·대리점국 사업계획 분리 표시.    ║
 // ║          per-channel ProgressBar 추가 (국내 패턴 일치). ║
 // ╚═══════════════════════════════════════╝
@@ -376,7 +380,7 @@ function WeeklyTab({weekKey,WS,isMobile}){
         <Metric label="보통예금" value={fmt(tr.cashBalance)} unit="백만원"/><Metric label="정기예금 (우리·기업·산업)" value={fmt(tr.deposits)} unit="백만원"/>{tr.elb>0&&<Metric label="ELB (주가연계파생결합사채, 한투 6개월)" value={fmt(tr.elb)} unit="백만원"/>}<Metric label="외화 (USD·JPY 보유)" value={fmt(tr.foreignCurrency)} unit="백만원"/><Metric label="차입금 (IBK 기업은행)" value={fmt(tr.borrowings)} unit="백만원" color={C.amber}/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:isMobile?8:10,marginBottom:4}}>
-        {[{l:"금주 흐름",v:fmt(tr.weeklyFlow),u:"백만원",c:tr.weeklyFlow>=0?C.up:C.down},{l:"당월 누적 흐름",v:fmt(mCumFlow),u:"백만원",c:mCumFlow>=0?C.up:C.down},{l:"월평균 Burn Rate",v:mBurn!=null?`△${fmt(Math.abs(mBurn))}`:"—",u:"백만원/월",c:C.amber},{l:"Runway",v:tr.runway,u:"개월",c:C.text}].map((x,i)=>(<div key={i} style={{textAlign:"center",padding:"10px 6px",background:"rgba(255,255,255,0.02)",borderRadius:6}}><div style={{fontSize:10,color:C.textDim,marginBottom:2}}>{x.l}</div><div style={{fontSize:18,fontWeight:700,color:x.c}}>{x.v}<span style={{fontSize:10,color:C.textMuted,marginLeft:2}}>{x.u}</span></div></div>))}
+        {[{l:"금주 흐름",v:fmt(tr.weeklyFlow),u:"백만원",c:tr.weeklyFlow>=0?C.up:C.down},{l:"당월 누적 흐름",v:fmt(mCumFlow),u:"백만원",c:mCumFlow>=0?C.up:C.down},{l:"월평균 Burn Rate",v:mBurn!=null?`△${fmt(Math.abs(mBurn))}`:"—",u:"백만원/월",c:C.amber},{l:"Runway",v:tr.runway==null?"—":tr.runway,u:tr.runway==null?"":"개월",c:C.text}].map((x,i)=>(<div key={i} style={{textAlign:"center",padding:"10px 6px",background:"rgba(255,255,255,0.02)",borderRadius:6}}><div style={{fontSize:10,color:C.textDim,marginBottom:2}}>{x.l}</div><div style={{fontSize:18,fontWeight:700,color:x.c}}>{x.v}<span style={{fontSize:10,color:C.textMuted,marginLeft:2}}>{x.u}</span></div></div>))}
       </div>
       {cashTD.length>1&&<div style={{marginTop:14}}><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>📈 Net Cash 추이 (최근 6주)</div><div style={{height:130}}><ResponsiveContainer><LineChart data={cashTD} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="wk" tick={seamTick} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false} domain={["dataMin-2000","dataMax+2000"]}/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={v=>[`${fmt(v)}백만원`,"Net Cash"]}/><Line type="monotone" dataKey="netCash" stroke="#60a5fa" strokeWidth={2} dot={{r:3,fill:"#60a5fa"}}/></LineChart></ResponsiveContainer></div></div>}
       {cashTD.length>1&&<div style={{marginTop:10}}><div style={{fontSize:11,fontWeight:700,color:C.textMuted,marginBottom:6}}>💧 주간 순흐름 (양=유입, 음=유출)</div><div style={{height:120}}><ResponsiveContainer><AreaChart data={cashTD.map(d=>({...d,flowPos:d.flow>0?d.flow:0,flowNeg:d.flow<0?d.flow:0}))} margin={{top:5,right:10,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" stroke={C.border}/><XAxis dataKey="wk" tick={seamTick} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:9,fill:"#cbd5e1"}} axisLine={false} tickLine={false}/><ReferenceLine y={0} stroke={C.textDim} strokeDasharray="3 3"/><Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,color:"#f1f5f9"}} labelStyle={{color:"#f1f5f9"}} itemStyle={{color:"#f1f5f9"}} formatter={(v,n)=>{if(n==="유입")return v>0?[`+${fmt(v)}백만원`,"유입"]:[null,null];if(n==="유출")return v<0?[`${fmt(v)}백만원`,"유출"]:[null,null];return[`${fmt(v)}백만원`,n];}} itemSorter={()=>0}/><Area type="monotone" dataKey="flowPos" stroke="#34d399" fill="#34d399" fillOpacity={0.35} strokeWidth={2} name="유입" dot={{r:3,fill:"#34d399"}}/><Area type="monotone" dataKey="flowNeg" stroke="#f87171" fill="#f87171" fillOpacity={0.35} strokeWidth={2} name="유출" dot={{r:3,fill:"#f87171"}}/></AreaChart></ResponsiveContainer></div></div>}
@@ -610,7 +614,7 @@ function Dashboard(){
     <style>{`.lm-card{}@media(max-width:768px){.lm-card{padding:10px 8px !important;margin-bottom:10px !important;border-radius:6px !important;} body{font-size:14px;}}`}</style>
     <div style={{maxWidth:isMobile?"100%":1200,margin:"0 auto",padding:isMobile?"10px 6px":"20px 24px"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:isMobile?10:14}}>
-        <div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.2.0</span></div>
+        <div style={{fontSize:isMobile?15:18,fontWeight:700}}><span style={{color:C.accent}}>LIVSMED</span> Executive Dashboard <span style={{fontSize:10,color:C.textDim,fontWeight:400}}>v5.2.1</span></div>
         <div style={{display:"flex",alignItems:"center",gap:8,fontSize:10,color:C.textDim}}>
           {updated&&<span>업데이트: {updated}</span>}
           <button onClick={loadData} disabled={loading} style={{padding:"4px 10px",borderRadius:4,border:`1px solid ${C.border}`,background:"transparent",color:C.textMuted,cursor:loading?"wait":"pointer",fontSize:10}}>{loading?"⏳":"🔄"} {loading?"로딩":"동기화"}</button>
@@ -633,7 +637,7 @@ function Dashboard(){
         <QuarterlyTab quarterKey={quarterKey} QS={data.QS} isMobile={isMobile}/>
       </>}
       <div style={{marginTop:24,paddingTop:14,borderTop:`1px solid ${C.border}`,fontSize:10,color:C.textDim,textAlign:"center"}}>
-        LIVSMED Executive Dashboard v5.2.0 · 전략기획실 전략팀 · {new Date().getFullYear()}
+        LIVSMED Executive Dashboard v5.2.1 · 전략기획실 전략팀 · {new Date().getFullYear()}
       </div>
     </div>
   </div>);
