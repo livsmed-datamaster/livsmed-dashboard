@@ -16,7 +16,12 @@ function useIsMobile(breakpoint=768){
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  LIVSMED Executive Dashboard v5.2.1                                      ║
+// ║  LIVSMED Executive Dashboard v5.2.2                                      ║
+// ║  — v5.2.2: 국내 인마켓 AS/VS 분리 표시 (B3-1)                            ║
+// ║      · mergeInmarket: domVS pN→pNNull (미수신 월 null 유지, 0 아님)      ║
+// ║      · domTotal: VS null이면 AS만, 값 있으면 AS+VS                       ║
+// ║      · B3-1 AS/VS 분리표에 국내 행 추가, VS 미수신은 "—" 표기            ║
+// ║      · "국내" 카드 라벨 → "국내 (AS+VS)"로 명확화                        ║
 // ║  — v5.2.1: Runway 빈 값 처리 (직전 3개월 데이터 부재 행 "—" 표시)        ║
 // ║      · mergeTreasury: runway pN→pNNull (빈 셀=null, 0 아님)              ║
 // ║      · A3 자금 카드: runway null이면 "—" (구 "0개월" 오표시 방지)        ║
@@ -150,13 +155,13 @@ function mergeInmarket(store,rows){
     const dDir=pN(r.dom_direct_actual),dDlr=pN(r.dom_dealer_actual);
     const hasDomNew=r.dom_AS_total!==undefined||r.dom_VS_total!==undefined;
     const domAS=hasDomNew?pN(r.dom_AS_total):(dDir+dDlr);
-    const domVS=hasDomNew?pN(r.dom_VS_total):0;
+    const domVS=hasDomNew?pNNull(r.dom_VS_total):null;
     const cur={
       domestic:{direct:dDir,dealer:dDlr,AS:domAS,VS:domVS},
       overseas:{us:ovsUS,de:ovsDE,jp:ovsJP},
       corp:{AS:iUS_AS+iDE_AS+iJP_AS,Seal:iUS_VS+iDE_VS+iJP_VS,us:{AS:iUS_AS,VS:iUS_VS},de:{AS:iDE_AS,VS:iDE_VS},jp:{AS:iJP_AS,VS:iJP_VS}},
       dist:{AS:dAS,Seal:dVS}};
-    cur.domTotal=domAS+domVS;
+    cur.domTotal=domAS+(domVS==null?0:domVS);
     cur.corpTotal=cur.corp.AS+cur.corp.Seal;cur.distTotal=cur.dist.AS+cur.dist.Seal;
     cur.ovsTotal=cur.overseas.us+cur.overseas.de+cur.overseas.jp;
     cur.grandTotal=cur.domTotal+cur.ovsTotal;
@@ -491,16 +496,16 @@ function MonthlyTab({monthKey,MS,WS,isMobile}){
         <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:8}}>B3-1. 월간 인마켓 (해외 실매출 + 국내)</div>
         {im?(<>
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(4,1fr)",gap:10,marginBottom:10}}>
-            {[{l:"국내",v:im.domTotal,c:C.accent,p:im.prev?.domTotal},{l:"해외(지사국 인마켓)",v:im.corpTotal,c:C.purple,p:im.prev?.corpTotal},{l:"해외(대리점국 출하)",v:im.distTotal,c:C.amber,p:im.prev?.distTotal},{l:"전체",v:im.grandTotal,c:C.green,p:im.prev?.grandTotal}].map((x,i)=>{const mom=x.p>0?((x.v-x.p)/x.p)*100:null;return(<div key={i} style={{textAlign:"center",padding:"8px 6px",background:"rgba(255,255,255,0.02)",borderRadius:6}}><div style={{fontSize:10,color:C.textDim}}>{x.l}</div><div style={{fontSize:18,fontWeight:700,color:x.c}}>{fmt(x.v)}<span style={{fontSize:9,color:C.textMuted,marginLeft:2}}>대</span></div>{mom!=null&&<div style={{fontSize:10,color:mom>=0?C.up:C.down,marginTop:2}}>{mom>=0?"▲":"▼"}{Math.abs(mom).toFixed(1)}%</div>}</div>);})}
+            {[{l:"국내 (AS+VS)",v:im.domTotal,c:C.accent,p:im.prev?.domTotal},{l:"해외(지사국 인마켓)",v:im.corpTotal,c:C.purple,p:im.prev?.corpTotal},{l:"해외(대리점국 출하)",v:im.distTotal,c:C.amber,p:im.prev?.distTotal},{l:"전체",v:im.grandTotal,c:C.green,p:im.prev?.grandTotal}].map((x,i)=>{const mom=x.p>0?((x.v-x.p)/x.p)*100:null;return(<div key={i} style={{textAlign:"center",padding:"8px 6px",background:"rgba(255,255,255,0.02)",borderRadius:6}}><div style={{fontSize:10,color:C.textDim}}>{x.l}</div><div style={{fontSize:18,fontWeight:700,color:x.c}}>{fmt(x.v)}<span style={{fontSize:9,color:C.textMuted,marginLeft:2}}>대</span></div>{mom!=null&&<div style={{fontSize:10,color:mom>=0?C.up:C.down,marginTop:2}}>{mom>=0?"▲":"▼"}{Math.abs(mom).toFixed(1)}%</div>}</div>);})}
           </div>
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14}}>
             <DT compact headers={["국가/채널","당월(대)","비중"]} rows={[{l:"🇺🇸 미국 (LMUS)",v:im.overseas.us,t:"corp"},{l:"🇩🇪 독일 (LMG)",v:im.overseas.de,t:"corp"},{l:"🇯🇵 일본 (LMJ)",v:im.overseas.jp,t:"corp"},{l:"🌍 대리점국 (디스트리뷰터)",v:im.distTotal,t:"dist"},{l:"🇰🇷 국내",v:im.domTotal,t:"dom"}].map(x=>[x.l,fmt(x.v),`${im.grandTotal>0?((x.v/im.grandTotal)*100).toFixed(1):"0"}%`])}/>
             <div>
               <div style={{fontSize:10,color:C.textDim,marginBottom:4}}>국가별 당월 인마켓 (AS/VS 분리)</div>
-              <DT compact headers={["국가","AS","VS","합계"]} rows={[["🇺🇸 미국",fmt(im.corp.us?.AS||0),fmt(im.corp.us?.VS||0),{v:fmt((im.corp.us?.AS||0)+(im.corp.us?.VS||0)),bold:true}],["🇩🇪 독일",fmt(im.corp.de?.AS||0),fmt(im.corp.de?.VS||0),{v:fmt((im.corp.de?.AS||0)+(im.corp.de?.VS||0)),bold:true}],["🇯🇵 일본",fmt(im.corp.jp?.AS||0),fmt(im.corp.jp?.VS||0),{v:fmt((im.corp.jp?.AS||0)+(im.corp.jp?.VS||0)),bold:true}],[{v:"지사국 합계",bold:true},{v:fmt(im.corp.AS),bold:true},{v:fmt(im.corp.Seal),bold:true},{v:fmt(im.corpTotal),bold:true}]]}/>
+              <DT compact headers={["국가","AS","VS","합계"]} rows={[["🇺🇸 미국",fmt(im.corp.us?.AS||0),fmt(im.corp.us?.VS||0),{v:fmt((im.corp.us?.AS||0)+(im.corp.us?.VS||0)),bold:true}],["🇩🇪 독일",fmt(im.corp.de?.AS||0),fmt(im.corp.de?.VS||0),{v:fmt((im.corp.de?.AS||0)+(im.corp.de?.VS||0)),bold:true}],["🇯🇵 일본",fmt(im.corp.jp?.AS||0),fmt(im.corp.jp?.VS||0),{v:fmt((im.corp.jp?.AS||0)+(im.corp.jp?.VS||0)),bold:true}],[{v:"지사국 합계",bold:true},{v:fmt(im.corp.AS),bold:true},{v:fmt(im.corp.Seal),bold:true},{v:fmt(im.corpTotal),bold:true}],[{v:"🇰🇷 국내",bold:true},{v:fmt(im.domestic.AS),bold:true},{v:fmt(im.domestic.VS),bold:true},{v:fmt(im.domTotal),bold:true}]]}/>
             </div>
           </div>
-          <Fn>※ 인마켓 = 지사국이 현지 병원·유통에 최종 판매. 대리점국 출하 = 본사→대리점 선적(매출 인식). 국내 = 본사 직판+대리점 매출(가납 출고 합산). MoM은 전월 대비.</Fn>
+          <Fn>※ 인마켓 = 지사국이 현지 병원·유통에 최종 판매. 대리점국 출하 = 본사→대리점 선적(매출 인식). 국내 = 본사 직판+대리점 매출(가납 출고 합산), AS(ArtiSential)+VS(ArtiSeal) 합산. 국내 VS는 2026-04부터 COL 사용현황 기준 정식 집계 시작(이전 월은 별도 경로 수집분). VS 미수신 월은 "—"로 표기하며 합계는 AS 기준. MoM은 전월 대비.</Fn>
         </>):<NoData msg="해당 월 인마켓 데이터 미수신"/>}
       </div>
 
